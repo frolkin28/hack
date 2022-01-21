@@ -1,0 +1,41 @@
+{
+  "name": "hack",
+  "description": "hack",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build-dev": "webpack --config webpack/dev.js",
+    "build-watch": "webpack --config webpack/dev.js -w",
+    "build-stg": "webpack --config webpack/stg.js --progress",
+    "build-prd": "webpack --config webpack/prd.js --progress"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.evo.dev:contentteam/bigdata/hack.git"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.7.2",
+    "@babel/node": "^7.7.0",
+    "@babel/plugin-proposal-class-properties": "^7.7.4",
+    "@babel/plugin-proposal-object-rest-spread": "^7.7.7",
+    "@babel/preset-env": "^7.7.1",
+    "@babel/preset-react": "^7.7.0",
+    "@types/react": "^16.9.17",
+    "@types/react-dom": "^16.9.4",
+    "babel-loader": "^8.0.6",
+    "clean-webpack-plugin": "^3.0.0",
+    "css-loader": "^5.2.7",
+    "file-loader": "^5.0.2",
+    "html-webpack-plugin": "^3.2.0",
+    "style-loader": "^2.0.0",
+    "terser-webpack-plugin": "^2.3.1",
+    "webpack": "^4.41.4",
+    "webpack-cli": "^3.3.10",
+    "webpack-merge": "^4.2.2"
+  },
+  "dependencies": {
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0"
+  }
+}

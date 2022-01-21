@@ -1,0 +1,7 @@
+aiohttp
+cchardet
+aiodns
+aiohttp-autoreload
+uvloop
+trafaret
+ruamel.yaml
