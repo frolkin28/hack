@@ -1,10 +1,21 @@
 import logging
 
 import aiohttp
-
 from aiohttp import web
+from aiohttp.web_fileresponse import FileResponse
+from aiohttp.web_request import Request
+
+from hack.config import INDEX_PATH
 
 log = logging.getLogger(__name__)
+
+
+async def get_root(request: Request) -> FileResponse:  # noqa
+    return FileResponse(INDEX_PATH)
+
+
+async def get_template(request: Request) -> FileResponse:
+    return FileResponse(INDEX_PATH)
 
 
 async def health_check(request: web.Request) -> web.Response:
