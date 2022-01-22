@@ -1,0 +1,22 @@
+.body {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: #f38181;
+    font-family: "montserrat", sans-serif;
+    font-weight: 500;
+    color: #fff;
+}
+
+.head {
+    font-weight: 900;
+    font-size: 2em;
+}
+
+.form {
+    width: 30%;
+    position: relative;
+}
