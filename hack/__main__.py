@@ -1,10 +1,22 @@
 if __name__ == '__main__':
+    import logging
+
     from aiohttp.web import run_app
     from uvloop import install
     from hack.app import make_app
     from hack.config import CONFIG
-    from logging import info
 
-    info('{} started'.format('hack'))
+    log = logging.getLogger(__name__)
+
+    if CONFIG['is_debug']:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
     install()
-    run_app(make_app(), port=CONFIG['port'])
+
+    log.info(
+        'Server listen on {}:{}'.format(CONFIG['host'], CONFIG['port'])
+    )
+
+    run_app(make_app(), host=CONFIG['host'], port=CONFIG['port'])
