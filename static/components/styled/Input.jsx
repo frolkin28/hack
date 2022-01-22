@@ -7,7 +7,6 @@ export const Input = styled("input")`
   margin: 10px 6px;
   width: calc(100% - 1.5em);
   color: #f38181;
-  font-family: "montserrat", sans-serif;
   font-weight: 500;
   
   &:focus {

@@ -11,7 +11,6 @@ export const Button = styled("button")`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "montserrat", sans-serif;
   font-weight: 1500;
   border-radius: 10px;
   border: thick double #ff7b73;

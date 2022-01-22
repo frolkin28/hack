@@ -35,6 +35,9 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.36",
+    "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@fortawesome/react-fontawesome": "^0.1.16",
     "@types/history": "^5.0.0",
     "classnames": "^2.3.1",
     "history": "^5.2.0",
