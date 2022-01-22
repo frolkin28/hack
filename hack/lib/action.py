@@ -4,7 +4,6 @@ from enum import Enum
 class Action(Enum):
     JOIN = 'join'
     LEAVE = 'leave'
-    SHARE_ROOMS = 'share-rooms'
     ADD_PEER = 'add-peer'
     REMOVE_PEER = 'remove-peer'
     RELAY_SDP = 'relay-sdp'
