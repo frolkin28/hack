@@ -46,8 +46,35 @@ def to_snake_case(camel_str: str) -> str:
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name_re).lower()
 
 
-def transform_dict_keys(data_dict: t.Dict[str, t.Any], transform: t.Callable):
-    data = {}
-    for key, val in data_dict.items():
-        data[transform(key)] = val
-    return data
+def _convert_dict(data: t.Any, transform_func: t.Callable) -> t.Any:
+    result = {}
+    for key in data:
+        new_key = transform_func(key)
+        if isinstance(data[key], dict):
+            result[new_key] = _convert_dict(data[key], transform_func)
+        elif isinstance(data[key], list):
+            result[new_key] = _convert_list(data[key], transform_func)
+        else:
+            result[new_key] = data[key]
+    return result
+
+
+def _convert_list(data: t.Any, transform_func: t.Callable) -> t.Any:
+    result = []
+    for el in data:
+        if isinstance(el, list):
+            result.append(_convert_list(el, transform_func))
+        elif isinstance(el, dict):
+            result.append(_convert_dict(el, transform_func))
+        else:
+            result.append(el)
+    return result
+
+
+def transform_dict_keys(
+    data_dict: t.Dict[str, t.Any], transform_func: t.Callable
+) -> t.Optional[t.Dict[str, t.Any]]:
+    if isinstance(data_dict, dict):
+        return _convert_dict(data_dict, transform_func=transform_func)
+
+    raise ValueError('Data must be Dict instance')

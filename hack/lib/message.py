@@ -34,7 +34,12 @@ RelayIceMessageData = t.Dict(
 
 # backend respond: START
 AddPeerMessageData = t.Dict(
-    peer_id=t.Int,
+    client=t.Dict(
+        peer_id=t.String,
+        name=t.String,
+        email=t.String,
+        is_organizer=t.Bool,
+    ),
     create_offer=t.Bool,
 )
 

@@ -51,7 +51,12 @@ async def join_processor(
         msg_data = {
             'action': Action.ADD_PEER.value,
             'data': {
-                'peer_id': curr_client.peer_id,
+                'client': {
+                    'peer_id': curr_client.peer_id,
+                    'name': curr_client.name,
+                    'email': curr_client.email,
+                    'is_organizer': curr_client.is_organizer,
+                },
                 'create_offer': False
             }
         }
@@ -60,7 +65,12 @@ async def join_processor(
         msg_data = {
             'action': Action.ADD_PEER.value,
             'data': {
-                'peer_id': client.peer_id,
+                'client': {
+                    'peer_id': client.peer_id,
+                    'name': client.name,
+                    'email': client.email,
+                    'is_organizer': client.is_organizer,
+                },
                 'create_offer': True
             }
         }

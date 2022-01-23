@@ -7,7 +7,7 @@ from aiohttp.web_fileresponse import FileResponse
 from aiohttp.web_request import Request
 
 from hack.config import INDEX_PATH
-from hack.lib.room import prepare_room_data_to_api
+from hack.lib.room import prepare_room_data
 
 from hack.lib.sockets import process_msg
 from hack.models import Room
@@ -69,7 +69,7 @@ async def get_room(request: web.Request) -> web.Response:
 
     return web.Response(
         status=web.HTTPOk.status_code,
-        body=json.dumps(prepare_room_data_to_api(room))
+        body=json.dumps(prepare_room_data(room))
     )
 
 
