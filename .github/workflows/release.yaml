@@ -20,10 +20,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build FRONTEND
-      - uses: actions/setup-node@v2
+        uses: actions/setup-node@v2
         with:
           node-version: '14'
-        - run: npm install
+
+      - run: npm install
 
       - name: Build image BACKEND and push to Docker Hub and GitHub Container Registry
         uses: docker/build-push-action@v2
