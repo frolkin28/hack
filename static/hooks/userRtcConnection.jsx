@@ -9,8 +9,6 @@ import socket from '../util/websocket';
 import ACTION from '../util/action';
 import {MainContext} from "../components/App/context";
 
-export const LOCAL_VIDEO = 'LOCAL_VIDEO';
-
 
 export default function userRtcConnection(roomId) {
     const {email: [inputEmail]} = useContext(MainContext);
@@ -31,11 +29,12 @@ export default function userRtcConnection(roomId) {
     const peerConnections = useRef({});
     const localMediaStream = useRef(null);
     const peerMediaElements = useRef({
-        [LOCAL_VIDEO]: null,
+        [inputEmail]: null,
     });
 
     useEffect(() => {
-        const handleNewPeer = async ({ peerId, createOffer }) => {
+        const handleNewPeer = async ({ client, createOffer }) => {
+            const peerId = client.peerId;
             if (peerId in peerConnections.current) {
                 return console.warn(`Already connected to peer ${peerId}`);
             }
@@ -63,7 +62,7 @@ export default function userRtcConnection(roomId) {
 
                 if (tracksNumber === 2) {
                     tracksNumber = 0;
-                    addNewClient(peerId, () => {
+                    addNewClient(client, () => {
                         if (peerMediaElements.current[peerId]) {
                             peerMediaElements.current[peerId].srcObject = remoteStream;
                         } else {
@@ -91,7 +90,7 @@ export default function userRtcConnection(roomId) {
                 const offer = await peerConnections.current[peerId].createOffer();
 
                 await peerConnections.current[peerId].setLocalDescription(offer);
-
+                console.log(peerId)
                 socket.send({
                     action: ACTION.RELAY_SDP,
                     data: {
@@ -180,8 +179,8 @@ export default function userRtcConnection(roomId) {
                 }
             });
 
-            addNewClient(LOCAL_VIDEO, () => {
-                const localVideoElement = peerMediaElements.current[LOCAL_VIDEO];
+            addNewClient({email: inputEmail, peerId: inputEmail, name: inputName}, () => {
+                const localVideoElement = peerMediaElements.current[inputEmail];
 
                 if (localVideoElement) {
                     localVideoElement.volume = 0;
@@ -194,8 +193,8 @@ export default function userRtcConnection(roomId) {
             .then(() => socket.send({
                 action: ACTION.JOIN,
                 data: { roomId, client: {
-                        'id': inputEmail, 'name': inputName, 'email': inputEmail
-                    } }
+                        'peerId': inputEmail, 'name': inputName, 'email': inputEmail
+                    }}
             }))
             .catch(e => console.error('Error getting userMedia:', e));
 
@@ -203,6 +202,9 @@ export default function userRtcConnection(roomId) {
             localMediaStream.current.getTracks().forEach(track => track.stop());
 
             socket.send({ action: ACTION.LEAVE, data: {roomId} });
+            const clientsCopy = clients.filter(client => client.email !== inputEmail);
+            console.log(clientsCopy);
+            updateClients(clientsCopy)
         };
     }, [roomId]);
 

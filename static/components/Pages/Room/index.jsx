@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useEffect, useRef, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import {useParams} from "react-router";
 import {
     faMicrophone,
@@ -13,82 +13,65 @@ import {
 import css from './style.css';
 import {IconButton} from "../../IconButton";
 import userRtcConnection from "../../../hooks/userRtcConnection";
-
-
-function layout(clientsNumber = 1) {
-    const pairs = Array.from({length: clientsNumber})
-        .reduce((acc, next, index, arr) => {
-            if (index % 2 === 0) {
-                acc.push(arr.slice(index, index + 2));
-            }
-
-            return acc;
-        }, []);
-
-    const rowsNumber = pairs.length;
-    const height = `${100 / rowsNumber}%`;
-
-    return pairs.map((row, index, arr) => {
-
-        if (index === arr.length - 1 && row.length === 1) {
-            return [{
-                width: '100%',
-                height,
-            }];
-        }
-
-        return row.map(() => ({
-            width: '50%',
-            height,
-        }));
-    }).flat();
-}
+import socket from "../../../util/websocket";
+import ACTION from "../../../util/action";
+import {MainContext} from "../../App/context";
+import {Redirect} from "react-router-dom";
 
 
 export const Room = () => {
     const {id: roomId} = useParams();
-    const {clients, provideMediaRef} = userRtcConnection(roomId);
-    console.log(clients)
-    const videoLayout = layout(clients.length);
+    const {email: [inputEmail]} = useContext(MainContext);
+    const {name: [inputName]} = useContext(MainContext);
 
+    if (!Boolean(inputEmail) && !Boolean(inputName)) {
+        return <Redirect to={`/join/${roomId}`} />
+    }
+
+    const {clients, provideMediaRef} = userRtcConnection(roomId);
 
     const stopVideo = () => {
         console.log('stop');
     }
 
+    window.onbeforeunload = function () {
+        socket.send({ action: ACTION.LEAVE, data: {roomId} });
+        return "Do you really want to close?";
+    };
+
+
 
     return (
         <div className={css.body}>
-            {/*<IconButton icon={faMinus} />*/}
-
             <div className={css.bodyPeoples}>
-                {clients.map((clientID, index) => (
+                {clients.map((client) => (
                     <div
                         className={css.person}
-                        style={videoLayout[index]}
-                        key={clientID}
-                        id={clientID}
+                        key={client.peerId}
+                        id={client.peerId}
                     >
                         <video
                             width='100%'
                             height='100%'
                             ref={instance => {
-                                provideMediaRef(clientID, instance);
+                                provideMediaRef(client.peerId, instance);
                             }}
                             autoPlay
-                            muted={clientID === 'LOCAL_VIDEO'}
+                            muted={client.email === inputEmail}
                         />
+                        <p>{client.name}</p>
                     </div>
                 ))}
             </div>
 
             <div className={css.listPeoples}>
                 <ul className={css.border}>
-                    <li>Элемент списка</li>
-                    <li>Элемент списка</li>
-                    <li>Элемент списка</li>
-                    <li>Элемент списка</li>
-                    <li>Элемент списка</li>
+                    {clients.map((client) => (
+                        <li className={css.name}>
+                            {client.name.slice(0, 8)}
+                            <IconButton icon={faMinus} small />
+                        </li>
+                    ))}
                 </ul>
             </div>
 

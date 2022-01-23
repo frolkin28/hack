@@ -33,7 +33,6 @@
 
 .bodyPeoples {
     display: flex;
-    flex-wrap: wrap;
     width: 78%;
     align-items: center;
     justify-content: center;
@@ -45,6 +44,12 @@
     margin: 10px;
     background-color: black;
     border-radius: 10%;
+}
+
+.name {
+    justify-content: space-between;
+    display: flex;
+    align-items: center;
 }
 
 
