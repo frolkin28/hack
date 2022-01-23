@@ -17,6 +17,12 @@
     color: white;
 }
 
+.error {
+    font-weight: 900;
+    font-size: 1em;
+    color: white;
+}
+
 .form {
     width: 30%;
     position: relative;

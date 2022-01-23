@@ -3,6 +3,7 @@ import {useContext, useEffect, useState} from "react";
 import {Redirect} from "react-router-dom";
 import {useHistory, useParams} from "react-router";
 import {
+    faCopy,
     faMicrophone,
     faMicrophoneSlash,
     faMinus,
@@ -10,6 +11,8 @@ import {
     faVideo,
     faVideoSlash
 } from "@fortawesome/free-solid-svg-icons";
+import ReactHintFactory from "react-hint";
+import "react-hint/css/index.css";
 
 import css from './style.css';
 import {IconButton} from "../../IconButton";
@@ -18,11 +21,15 @@ import ACTION from "../../../util/action";
 import {MainContext} from "../../App/context";
 import userRtcConnection from "../../../hooks/useRtcConnection";
 
+const ReactHint = ReactHintFactory(React);
+
 export const Room = () => {
     const {id: roomId} = useParams();
     const {email: [inputEmail]} = useContext(MainContext);
     const {name: [inputName]} = useContext(MainContext);
     const {organizer: [isOrganizer]} = useContext(MainContext);
+    const {clients: [clients, setClients]} = useContext(MainContext);
+
     const [isMicrophoneOn, setIsMicrophoneOn] = useState(true);
     const [isVideoOn, setIsVideoOn] = useState(true);
 
@@ -30,7 +37,7 @@ export const Room = () => {
         return <Redirect to={`/join/${roomId}`} />
     }
 
-    const {clients, updateClients, provideMediaRef, controlMediaStream} = userRtcConnection(roomId);
+    const {provideMediaRef, controlMediaStream} = userRtcConnection(roomId);
 
     const history = useHistory();
 
@@ -51,7 +58,7 @@ export const Room = () => {
     const handleDeleteClient = (peerId) => {
         socket.send({ action: ACTION.DELETE_CLIENT, data: {roomId, peerId} });
         console.log(clients);
-        updateClients(list => list.filter(el => el !== peerId));
+        setClients(list => list.filter(el => el !== peerId));
         console.log(clients);
     }
 
@@ -120,6 +127,20 @@ export const Room = () => {
                 </div>
                 <div>
                     <IconButton icon={faPhoneSlash} onClick={handleLeaveRoom} />
+                </div>
+                <div>
+                    <ReactHint
+                        events={{ click: true }}
+                        attribute="data-custom"
+                        onRenderContent={() => {return 'URL copied'}}
+                    />
+                    <div data-custom>
+                        <IconButton
+                            icon={faCopy}
+                            onClick={() => {navigator.clipboard.writeText(document.URL)}}
+                        />
+                    </div>
+
                 </div>
             </div>
         </div>
