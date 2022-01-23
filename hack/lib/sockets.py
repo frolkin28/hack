@@ -47,6 +47,12 @@ async def join_processor(
         )
         return
 
+    if not room.has_organizer():
+        room.set_organizer(curr_client)
+        curr_client.is_organizer = True
+    elif room.check_is_organizer(curr_client.email):
+        curr_client.is_organizer = True
+
     for client in room.clients:
         msg_data = {
             'action': Action.ADD_PEER.value,

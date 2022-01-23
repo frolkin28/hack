@@ -10,7 +10,7 @@ from hack.utils import gen_id
 log = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
+@dataclass
 class Client:
     peer_id: str
     name: str
@@ -23,6 +23,7 @@ class Room:
     def __init__(self):
         self.id = gen_id()
         self.clients = []
+        self.organizer_email = None
 
     def add_client(self, client: Client) -> None:
         self.clients.append(client)
@@ -56,6 +57,15 @@ class Room:
 
     def check_is_joined(self, client_peer_id: str) -> bool:
         return client_peer_id in (client.peer_id for client in self.clients)
+
+    def set_organizer(self, client: Client) -> None:
+        self.organizer_email = client.email
+
+    def check_is_organizer(self, client_email: str) -> bool:
+        return self.organizer_email == client_email
+
+    def has_organizer(self) -> bool:
+        return bool(self.organizer_email)
 
     @property
     def ws_list(self) -> t.List[WebSocketResponse]:
