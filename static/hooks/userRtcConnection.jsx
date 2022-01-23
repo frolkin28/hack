@@ -50,6 +50,7 @@ export default function userRtcConnection(roomId) {
                         action: ACTION.RELAY_ICE,
                         data: {
                             peerId,
+                            roomId,
                             iceCandidate: event.candidate
                         }
                     });
@@ -95,6 +96,7 @@ export default function userRtcConnection(roomId) {
                     action: ACTION.RELAY_SDP,
                     data: {
                         peerId,
+                        roomId,
                         sessionDescription: offer
                     }
                 });
@@ -123,6 +125,7 @@ export default function userRtcConnection(roomId) {
                     action: ACTION.RELAY_SDP,
                     data: {
                         peerId,
+                        roomId,
                         sessionDescription: answer
                     }
                 });
@@ -199,7 +202,7 @@ export default function userRtcConnection(roomId) {
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
 
-            socket.send({ action: ACTION.LEAVE, data: {} });
+            socket.send({ action: ACTION.LEAVE, data: {roomId} });
         };
     }, [roomId]);
 
