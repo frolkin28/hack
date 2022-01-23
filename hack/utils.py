@@ -5,7 +5,7 @@ import time
 from hashlib import md5, sha1
 from os import getenv
 from pathlib import Path
-from typing import Any, Dict, Union
+import typing as t
 
 from ruamel.yaml import safe_load
 
@@ -19,7 +19,7 @@ def get_env(name: str) -> str:
     raise RuntimeError(f'{name} not set')
 
 
-def get_config(path: Union[str, Path]) -> Dict[str, Any]:
+def get_config(path: t.Union[str, Path]) -> t.Dict[str, t.Any]:
     with open(str(path)) as stream:
         config = safe_load(stream.read())
         config_trafaret.check(config)
@@ -44,3 +44,10 @@ def to_camel_case(snake_str: str) -> str:
 def to_snake_case(camel_str: str) -> str:
     name_re = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', camel_str)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name_re).lower()
+
+
+def transform_dict_keys(data_dict: t.Dict[str, t.Any], transform: t.Callable):
+    data = {}
+    for key, val in data_dict:
+        data[transform(key)] = val
+    return data
