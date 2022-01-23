@@ -214,7 +214,7 @@ async def remove_from_room(room: Room, client_to_remove: Client) -> None:
     room.remove_client(client_to_remove.peer_id)
 
     msg_data = {
-        'action': Action.CLIENT_DELETED,
+        'action': Action.CLIENT_DELETED.value,
         'data': {
             'room_id': room.id,
             'peer_id': client_to_remove.peer_id,

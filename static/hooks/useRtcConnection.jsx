@@ -8,7 +8,7 @@ import freeice from 'freeice';
 import socket from '../util/websocket';
 import ACTION from '../util/action';
 import {MainContext} from "../components/App/context";
-import {Redirect} from "react-router-dom";
+import {useHistory} from "react-router";
 
 export const MEDIA_STREAM_STATE = {
     ON: true,
@@ -21,6 +21,7 @@ export default function userRtcConnection(roomId) {
     const {name: [inputName]} = useContext(MainContext);
     const {organizer: [isOrganizer]} = useContext(MainContext);
     const {clients: [clients, setClients]} = useContext(MainContext);
+    const history = useHistory();
 
 
     const addNewClient = useCallback((newClient, cb) => {
@@ -178,11 +179,8 @@ export default function userRtcConnection(roomId) {
 
     useEffect(() => {
         const handleClientDeleted = ({ peerId }) => {
-            console.log('peerId')
-            console.log(peerId)
-            console.log(inputEmail)
             if (inputEmail === peerId) {
-                return <Redirect to='/' />
+                history.push('/');
             }
         };
 
