@@ -5,13 +5,16 @@ import {createBrowserHistory} from 'history'
 
 import App from "./components/App";
 import {GlobalStyle} from "./components/styled/styles";
+import {ContextProvider} from "./components/App/context";
 
 const history = createBrowserHistory()
 
 ReactDOM.render((
     <BrowserRouter history={history}>
-        <GlobalStyle />
-        <App />
+        <ContextProvider>
+            <GlobalStyle />
+            <App />
+        </ContextProvider>
     </BrowserRouter>
 ), document.getElementById('root')
 );

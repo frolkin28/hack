@@ -1,18 +1,21 @@
 import {
     useEffect,
     useRef,
-    useCallback,
-    useState
+    useCallback, useContext,
 } from 'react';
 import freeice from 'freeice';
 import useStateWithCallback from './useStateWithCallback';
 import socket from '../util/websocket';
 import ACTION from '../util/action';
+import {MainContext} from "../components/App/context";
 
 export const LOCAL_VIDEO = 'LOCAL_VIDEO';
 
 
 export default function userRtcConnection(roomId) {
+    const {email: [inputEmail]} = useContext(MainContext);
+    const {name: [inputName]} = useContext(MainContext);
+
     const [clients, updateClients] = useStateWithCallback([]);
 
     const addNewClient = useCallback((newClient, cb) => {
@@ -188,7 +191,7 @@ export default function userRtcConnection(roomId) {
             .then(() => socket.send({
                 action: ACTION.JOIN,
                 data: { roomId, client: {
-                        'id': 'inputEm323a2il2', 'name': 'input3Name3232', 'email': 'inpu3t3323Email'
+                        'id': inputEmail, 'name': inputName, 'email': inputEmail
                     } }
             }))
             .catch(e => console.error('Error getting userMedia:', e));
