@@ -165,7 +165,7 @@ export default function userRtcConnection(roomId) {
             delete peerConnections.current[peerId];
             delete peerMediaElements.current[peerId];
 
-            updateClients(list => list.filter(c => c !== peerId));
+            updateClients(list => list.filter(el => el !== peerId));
         };
 
         socket.on(ACTION.REMOVE_PEER, handleRemovePeer);
@@ -185,7 +185,7 @@ export default function userRtcConnection(roomId) {
                 }
             });
 
-            addNewClient({email: inputEmail, peerId: inputEmail, name: inputName}, () => {
+            addNewClient({email: inputEmail, peerId: inputEmail, name: inputName, isOrganizer}, () => {
                 const localVideoElement = peerMediaElements.current[inputEmail];
 
                 if (localVideoElement) {
@@ -199,7 +199,7 @@ export default function userRtcConnection(roomId) {
             .then(() => socket.send({
                 action: ACTION.JOIN,
                 data: { roomId, client: {
-                        'peerId': inputEmail, 'name': inputName, 'email': inputEmail, isOrganizer: isOrganizer
+                        'peerId': inputEmail, 'name': inputName, 'email': inputEmail, isOrganizer
                     }}
             }))
             .catch(e => console.error('Error getting userMedia:', e));
@@ -233,18 +233,14 @@ export default function userRtcConnection(roomId) {
                 localMediaStream.current &&
                 localMediaStream.current.getVideoTracks().length > 0
             ) {
-                console.log('unmute')
                 localMediaStream.current.getVideoTracks()[0].enabled = true
-                console.log(localMediaStream.current.getVideoTracks())
             }
         } else if (videoState === MEDIA_STREAM_STATE.OFF) {
-            console.log(localMediaStream.current.getVideoTracks());
             if (
                 localMediaStream.current &&
                 localMediaStream.current.getVideoTracks().length > 0
             ) {
                 localMediaStream.current.getVideoTracks()[0].enabled = false
-                console.log(localMediaStream.current.getVideoTracks())
             }
         }
     });

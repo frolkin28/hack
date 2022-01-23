@@ -6,6 +6,7 @@ import {Button} from "../../styled/Btn";
 import {useHistory, useParams} from "react-router";
 import {postRoom} from "../../../api/room";
 import {MainContext} from "../../App/context";
+import {Link} from "react-router-dom";
 
 export const CreateRoom = () => {
     const {id: roomId} = useParams();
@@ -32,7 +33,7 @@ export const CreateRoom = () => {
 
     return (
         <div className={css.body}>
-            <h1 className={css.head}>ChebureckMeet</h1>
+            <h2><Link to='/' className={css.head}>ChebureckMeet</Link></h2>
             <div className={css.form}>
                 <Input
                     placeholder='Email'
