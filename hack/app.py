@@ -22,4 +22,6 @@ async def make_app() -> Application:
         app.router.add_static(CONFIG['static_root'], STATIC_PATH, name='build')
         start()
 
+    app.rooms = {}
+
     return app
