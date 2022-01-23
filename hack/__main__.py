@@ -1,4 +1,5 @@
 if __name__ == '__main__':
+    import os
     import logging
 
     from aiohttp.web import run_app
@@ -15,8 +16,10 @@ if __name__ == '__main__':
 
     install()
 
+    port = int(os.environ.get("PORT", CONFIG['port']))
+
     log.info(
-        'Server listen on {}:{}'.format(CONFIG['host'], CONFIG['port'])
+        'Server listen on {}:{}'.format(CONFIG['host'], port)
     )
 
-    run_app(make_app(), host=CONFIG['host'], port=CONFIG['port'])
+    run_app(make_app(), host=CONFIG['host'], port=port)
