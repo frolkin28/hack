@@ -1,10 +1,18 @@
 {
     "presets": [
-        "@babel/preset-env",
+        ["@babel/preset-env", {
+            "corejs": { "version": 3 },
+            "useBuiltIns": "entry",
+            "modules": false,
+            "targets": "last 2 versions, not dead"
+        }],
         "@babel/preset-react"
     ],
     "plugins": [
         "@babel/proposal-class-properties",
-        "@babel/proposal-object-rest-spread"
+        "@babel/proposal-object-rest-spread",
+        "@babel/plugin-proposal-optional-chaining",
+        "@babel/plugin-syntax-optional-chaining",
+        "@babel/plugin-transform-runtime"
     ]
 }
