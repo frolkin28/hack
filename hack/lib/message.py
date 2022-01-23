@@ -8,15 +8,21 @@ BaseMessage = t.Dict(
 # backend allows: START
 JoinMessageData = t.Dict(
     room_id=t.String,
-    client=t.Dict(
-        peer_id=t.String,
-        name=t.String,
-        email=t.String,
-    ),
+    client=t.Dict({
+        'peer_id': t.String,
+        'name': t.String,
+        'email': t.String,
+        t.Key('is_organizer', optional=True): t.Bool,
+    })
 )
 
 LeaveMessageData = t.Dict(
     room_id=t.String,
+)
+
+DeleteClientMessageData = t.Dict(
+    room_id=t.String,
+    peer_id=t.String,
 )
 
 RelaySDPMessageData = t.Dict(

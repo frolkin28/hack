@@ -1,7 +1,9 @@
 import * as React from "react";
-import {useContext, useEffect, useRef, useState} from "react";
-import {useParams} from "react-router";
+import {useContext, useEffect, useState} from "react";
+import {Redirect} from "react-router-dom";
+import {useHistory, useParams} from "react-router";
 import {
+    faCopy,
     faMicrophone,
     faMicrophoneSlash,
     faMinus,
@@ -9,37 +11,66 @@ import {
     faVideo,
     faVideoSlash
 } from "@fortawesome/free-solid-svg-icons";
+import ReactHintFactory from "react-hint";
+import "react-hint/css/index.css";
 
 import css from './style.css';
 import {IconButton} from "../../IconButton";
-import userRtcConnection from "../../../hooks/userRtcConnection";
 import socket from "../../../util/websocket";
 import ACTION from "../../../util/action";
 import {MainContext} from "../../App/context";
-import {Redirect} from "react-router-dom";
+import userRtcConnection from "../../../hooks/useRtcConnection";
 
+const ReactHint = ReactHintFactory(React);
 
 export const Room = () => {
     const {id: roomId} = useParams();
     const {email: [inputEmail]} = useContext(MainContext);
     const {name: [inputName]} = useContext(MainContext);
     const {organizer: [isOrganizer]} = useContext(MainContext);
+    const {clients: [clients, setClients]} = useContext(MainContext);
+
+    const [isMicrophoneOn, setIsMicrophoneOn] = useState(true);
+    const [isVideoOn, setIsVideoOn] = useState(true);
 
     if (!Boolean(inputEmail) && !Boolean(inputName)) {
         return <Redirect to={`/join/${roomId}`} />
     }
 
-    const {clients, provideMediaRef} = userRtcConnection(roomId);
+    const {provideMediaRef, controlMediaStream} = userRtcConnection(roomId);
 
-    const stopVideo = () => {
-        console.log('stop');
+    const history = useHistory();
+
+    const handleMicrophoneClick = () => {
+        setIsMicrophoneOn(!isMicrophoneOn);
+        controlMediaStream(isMicrophoneOn, isVideoOn);
+    };
+
+    const handleVideoClick = () => {
+        setIsVideoOn(!isVideoOn);
+        controlMediaStream(isMicrophoneOn, isVideoOn);
+    };
+
+    const handleLeaveRoom = () => {
+        history.push('/');
+    };
+
+    const handleDeleteClient = (peerId) => {
+        socket.send({ action: ACTION.DELETE_CLIENT, data: {roomId, peerId} });
+        console.log(clients);
+        setClients(list => list.filter(el => el !== peerId));
+        console.log(clients);
     }
+
+    useEffect(() => {
+        controlMediaStream(isMicrophoneOn, isVideoOn);
+    }, [isMicrophoneOn, isVideoOn]);
 
     window.onbeforeunload = function () {
         socket.send({ action: ACTION.LEAVE, data: {roomId} });
         return "Do you really want to close?";
     };
-    console.log(clients);
+
     return (
         <div className={css.body}>
             <div className={css.bodyPeoples}>
@@ -51,10 +82,11 @@ export const Room = () => {
                     >
                         <video
                             width='100%'
-                            height='100%'
+                            height='auto'
                             ref={instance => {
                                 provideMediaRef(client.peerId, instance);
                             }}
+                            className={css.personVideo}
                             autoPlay
                             muted={client.email === inputEmail}
                         />
@@ -68,22 +100,48 @@ export const Room = () => {
                     {clients.map((client) => (
                         <li className={css.name} key={client.peerId} >
                             {client.name.slice(0, 8)}
-                            {isOrganizer ? <IconButton icon={faMinus} small /> : null}
+                            {isOrganizer && client.email !== inputEmail
+                                ? <IconButton
+                                    icon={faMinus}
+                                    small
+                                    onClick={() => handleDeleteClient(client.peerId)}
+                                />
+                                : null}
                         </li>
                     ))}
                 </ul>
             </div>
 
             <div className={css.footer}>
-                {true
-                    ? <IconButton icon={faMicrophone} />
-                    : <IconButton icon={faMicrophoneSlash} />
-                }
-                {true
-                    ? <IconButton icon={faVideo} onClick={stopVideo}/>
-                    : <IconButton icon={faVideoSlash} />
-                }
-                <IconButton icon={faPhoneSlash}/>
+                <div>
+                    {isMicrophoneOn
+                        ? <IconButton icon={faMicrophone} onClick={handleMicrophoneClick} />
+                        : <IconButton icon={faMicrophoneSlash} onClick={handleMicrophoneClick} />
+                    }
+                </div>
+                <div>
+                    {isVideoOn
+                        ? <IconButton icon={faVideo} onClick={handleVideoClick} />
+                        : <IconButton icon={faVideoSlash} onClick={handleVideoClick} />
+                    }
+                </div>
+                <div>
+                    <IconButton icon={faPhoneSlash} onClick={handleLeaveRoom} />
+                </div>
+                <div>
+                    <ReactHint
+                        events={{ click: true }}
+                        attribute="data-custom"
+                        onRenderContent={() => {return 'URL copied'}}
+                    />
+                    <div data-custom>
+                        <IconButton
+                            icon={faCopy}
+                            onClick={() => {navigator.clipboard.writeText(document.URL)}}
+                        />
+                    </div>
+
+                </div>
             </div>
         </div>
     );

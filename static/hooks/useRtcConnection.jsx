@@ -9,23 +9,28 @@ import socket from '../util/websocket';
 import ACTION from '../util/action';
 import {MainContext} from "../components/App/context";
 
+export const MEDIA_STREAM_STATE = {
+    ON: true,
+    OFF: false,
+}
+
 
 export default function userRtcConnection(roomId) {
     const {email: [inputEmail]} = useContext(MainContext);
     const {name: [inputName]} = useContext(MainContext);
     const {organizer: [isOrganizer]} = useContext(MainContext);
+    const {clients: [clients, setClients]} = useContext(MainContext);
 
-    const [clients, updateClients] = useStateWithCallback([]);
 
     const addNewClient = useCallback((newClient, cb) => {
-        updateClients(list => {
+        setClients(list => {
             if (!list.includes(newClient)) {
                 return [...list, newClient]
             }
 
             return list;
         }, cb);
-    }, [clients, updateClients]);
+    }, [clients, setClients]);
 
     const peerConnections = useRef({});
     const localMediaStream = useRef(null);
@@ -91,6 +96,7 @@ export default function userRtcConnection(roomId) {
                 const offer = await peerConnections.current[peerId].createOffer();
 
                 await peerConnections.current[peerId].setLocalDescription(offer);
+
                 socket.send({
                     action: ACTION.RELAY_SDP,
                     data: {
@@ -159,7 +165,7 @@ export default function userRtcConnection(roomId) {
             delete peerConnections.current[peerId];
             delete peerMediaElements.current[peerId];
 
-            updateClients(list => list.filter(c => c !== peerId));
+            setClients(list => list.filter(el => el !== peerId));
         };
 
         socket.on(ACTION.REMOVE_PEER, handleRemovePeer);
@@ -179,7 +185,7 @@ export default function userRtcConnection(roomId) {
                 }
             });
 
-            addNewClient({email: inputEmail, peerId: inputEmail, name: inputName}, () => {
+            addNewClient({email: inputEmail, peerId: inputEmail, name: inputName, isOrganizer}, () => {
                 const localVideoElement = peerMediaElements.current[inputEmail];
 
                 if (localVideoElement) {
@@ -193,7 +199,7 @@ export default function userRtcConnection(roomId) {
             .then(() => socket.send({
                 action: ACTION.JOIN,
                 data: { roomId, client: {
-                        'peerId': inputEmail, 'name': inputName, 'email': inputEmail, isOrganizer: isOrganizer
+                        'peerId': inputEmail, 'name': inputName, 'email': inputEmail, isOrganizer
                     }}
             }))
             .catch(e => console.error('Error getting userMedia:', e));
@@ -201,8 +207,7 @@ export default function userRtcConnection(roomId) {
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
             socket.send({ action: ACTION.LEAVE, data: {roomId} });
-            console.log(clients)
-            clients.remove(function(client) { return client.email === inputEmail; });
+            setClients(list => list.filter(el => el !== inputEmail));
         };
     }, [roomId]);
 
@@ -210,9 +215,38 @@ export default function userRtcConnection(roomId) {
         peerMediaElements.current[id] = node;
     }, []);
 
+    const controlMediaStream = useCallback((microphoneState, videoState) => {
+        const localStream = localMediaStream.current;
+
+        if (microphoneState === MEDIA_STREAM_STATE.ON) {
+            if (localStream && localMediaStream.current.getAudioTracks().length) {
+                localMediaStream.current.getAudioTracks()[0].enabled = true
+            }
+        } else if (microphoneState === MEDIA_STREAM_STATE.OFF) {
+            if (localStream && localMediaStream.current.getAudioTracks().length) {
+                localMediaStream.current.getAudioTracks()[0].enabled = false
+            }
+        }
+
+        if (videoState === MEDIA_STREAM_STATE.ON) {
+            if (
+                localMediaStream.current &&
+                localMediaStream.current.getVideoTracks().length > 0
+            ) {
+                localMediaStream.current.getVideoTracks()[0].enabled = true
+            }
+        } else if (videoState === MEDIA_STREAM_STATE.OFF) {
+            if (
+                localMediaStream.current &&
+                localMediaStream.current.getVideoTracks().length > 0
+            ) {
+                localMediaStream.current.getVideoTracks()[0].enabled = false
+            }
+        }
+    });
+
     return {
-        clients,
-        updateClients,
-        provideMediaRef
+        provideMediaRef,
+        controlMediaStream,
     };
 }

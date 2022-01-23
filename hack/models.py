@@ -35,13 +35,7 @@ class Room:
             if client.peer_id != client_peer_id
         ]
 
-    async def close(self):
-        # TODO: check how it works
-        log.info(f'Closing room {self.id}')
-        for ws in self.ws_list:
-            await ws.close()
-
-    def get_client_by_id(self, client_peer_id: str) -> t.Optional[Client]:
+    def get_client_by_peer_id(self, client_peer_id: str) -> t.Optional[Client]:
         for _client in self.clients:
             if client_peer_id == _client.peer_id:
                 return _client
