@@ -132,6 +132,7 @@ async def relay_sdp_processor(
     }
     target_client = room.get_client_by_id(data['peer_id'])
     await send_msg(target_client.ws, msg_data)
+    log_room(room)
 
 
 async def relay_ice_processor(
@@ -157,6 +158,7 @@ async def relay_ice_processor(
     }
     target_client = room.get_client_by_id(data['peer_id'])
     await send_msg(target_client.ws, msg_data)
+    log_room(room)
 
 
 ACTIONS_PROCESSORS_MAPPING: t.Dict[Action, t.Callable] = {

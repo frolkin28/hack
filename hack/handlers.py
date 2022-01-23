@@ -43,6 +43,10 @@ async def websocket_handler(request):
                     f'{request.app.rooms.keys()}'
                     f'\n{"#" * 50}\n'
                 )
+                log.debug(
+                    f'\n\n{"#" * 50}\n socket handler end '
+                    f'\n{"#" * 50}\n'
+                )
         elif msg.type == aiohttp.WSMsgType.ERROR:
             log.error(
                 f'ws connection closed with exception {ws.exception()}'
