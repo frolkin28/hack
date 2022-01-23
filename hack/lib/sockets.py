@@ -44,6 +44,8 @@ ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
 
 def validate_action_data(action: Action, data: t.Dict[str, t.Any]):
     trafaret_schema = ACTION_MESSAGE_TRAFARETS_MAPPING[action]
+    if not trafaret_schema:
+        return
     try:
         trafaret_schema.check(data)
     except DataError as e:
@@ -209,6 +211,12 @@ async def remove_from_room(room: Room, client_to_remove: Client) -> None:
         await send_msg(client_to_remove.ws, msg_data)
 
     room.remove_client(client_to_remove.peer_id)
+
+    msg_data = {
+        'action': Action.CLIENT_DELETED,
+        'data': {}
+    }
+    await send_msg(client_to_remove.ws, msg_data)
     await client_to_remove.ws.close()
 
 
