@@ -46,8 +46,9 @@ function layout(clientsNumber = 1) {
 
 
 export const Room = () => {
-    const {id: roomID} = useParams();
-    const {clients, provideMediaRef} = userRtcConnection(roomID);
+    const {id: roomId} = useParams();
+    const {clients, provideMediaRef} = userRtcConnection(roomId);
+    console.log(clients)
     const videoLayout = layout(clients.length);
 
 

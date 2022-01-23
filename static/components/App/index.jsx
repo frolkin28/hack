@@ -12,17 +12,9 @@ import css from './style.css';
 import {NotFoundPage} from "../Pages/NotFoundPage";
 import { CreateRoom } from "../Pages/CreateRoom";
 import { Room } from "../Pages/Room";
-import socket from '../../util/websocket';
-import ACTION from '../../util/action';
+
 
 export const App = () => {
-    useEffect(() => {
-        socket.on(ACTION.JOIN, (data) => console.log('On', data));
-        // socket.off(ACTION.JOIN);
-        socket.onopen(() => socket.send(
-            { action: ACTION.JOIN, data: { peer_id: 1, room_id: 1 } }
-        ));
-    });
 
     return (
         <div className="App">

@@ -12,7 +12,7 @@ import ACTION from '../util/action';
 export const LOCAL_VIDEO = 'LOCAL_VIDEO';
 
 
-export default function userRtcConnection(roomID) {
+export default function userRtcConnection(roomId) {
     const [clients, updateClients] = useStateWithCallback([]);
 
     const addNewClient = useCallback((newClient, cb) => {
@@ -32,21 +32,21 @@ export default function userRtcConnection(roomID) {
     });
 
     useEffect(() => {
-        const handleNewPeer = async ({ peerID, createOffer }) => {
-            if (peerID in peerConnections.current) {
-                return console.warn(`Already connected to peer ${peerID}`);
+        const handleNewPeer = async ({ peerId, createOffer }) => {
+            if (peerId in peerConnections.current) {
+                return console.warn(`Already connected to peer ${peerId}`);
             }
 
-            peerConnections.current[peerID] = new RTCPeerConnection({
+            peerConnections.current[peerId] = new RTCPeerConnection({
                 iceServers: freeice(),
             });
 
-            peerConnections.current[peerID].onicecandidate = event => {
+            peerConnections.current[peerId].onicecandidate = event => {
                 if (event.candidate) {
                     socket.send({
                         action: ACTION.RELAY_ICE,
                         data: {
-                            peerID,
+                            peerId,
                             iceCandidate: event.candidate
                         }
                     });
@@ -54,19 +54,19 @@ export default function userRtcConnection(roomID) {
             }
 
             let tracksNumber = 0;
-            peerConnections.current[peerID].ontrack = ({ streams: [remoteStream] }) => {
+            peerConnections.current[peerId].ontrack = ({ streams: [remoteStream] }) => {
                 tracksNumber++
 
                 if (tracksNumber === 2) {
                     tracksNumber = 0;
-                    addNewClient(peerID, () => {
-                        if (peerMediaElements.current[peerID]) {
-                            peerMediaElements.current[peerID].srcObject = remoteStream;
+                    addNewClient(peerId, () => {
+                        if (peerMediaElements.current[peerId]) {
+                            peerMediaElements.current[peerId].srcObject = remoteStream;
                         } else {
                             let settled = false;
                             const interval = setInterval(() => {
-                                if (peerMediaElements.current[peerID]) {
-                                    peerMediaElements.current[peerID].srcObject = remoteStream;
+                                if (peerMediaElements.current[peerId]) {
+                                    peerMediaElements.current[peerId].srcObject = remoteStream;
                                     settled = true;
                                 }
 
@@ -80,18 +80,18 @@ export default function userRtcConnection(roomID) {
             }
 
             localMediaStream.current.getTracks().forEach(track => {
-                peerConnections.current[peerID].addTrack(track, localMediaStream.current);
+                peerConnections.current[peerId].addTrack(track, localMediaStream.current);
             });
 
             if (createOffer) {
-                const offer = await peerConnections.current[peerID].createOffer();
+                const offer = await peerConnections.current[peerId].createOffer();
 
-                await peerConnections.current[peerID].setLocalDescription(offer);
+                await peerConnections.current[peerId].setLocalDescription(offer);
 
                 socket.send({
                     action: ACTION.RELAY_SDP,
                     data: {
-                        peerID,
+                        peerId,
                         sessionDescription: offer
                     }
                 });
@@ -106,20 +106,20 @@ export default function userRtcConnection(roomID) {
     }, []);
 
     useEffect(() => {
-        async function setRemoteMedia({ peerID, sessionDescription: remoteDescription }) {
-            await peerConnections.current[peerID]?.setRemoteDescription(
+        async function setRemoteMedia({ peerId, sessionDescription: remoteDescription }) {
+            await peerConnections.current[peerId]?.setRemoteDescription(
                 new RTCSessionDescription(remoteDescription)
             );
 
             if (remoteDescription.type === 'offer') {
-                const answer = await peerConnections.current[peerID].createAnswer();
+                const answer = await peerConnections.current[peerId].createAnswer();
 
-                await peerConnections.current[peerID].setLocalDescription(answer);
+                await peerConnections.current[peerId].setLocalDescription(answer);
 
                 socket.send({
                     action: ACTION.RELAY_SDP,
                     data: {
-                        peerID,
+                        peerId,
                         sessionDescription: answer
                     }
                 });
@@ -134,8 +134,8 @@ export default function userRtcConnection(roomID) {
     }, []);
 
     useEffect(() => {
-        socket.on(ACTION.ICE_CANDIDATE, ({ peerID, iceCandidate }) => {
-            peerConnections.current[peerID]?.addIceCandidate(
+        socket.on(ACTION.ICE_CANDIDATE, ({ peerId, iceCandidate }) => {
+            peerConnections.current[peerId]?.addIceCandidate(
                 new RTCIceCandidate(iceCandidate)
             );
         });
@@ -146,15 +146,15 @@ export default function userRtcConnection(roomID) {
     }, []);
 
     useEffect(() => {
-        const handleRemovePeer = ({ peerID }) => {
-            if (peerConnections.current[peerID]) {
-                peerConnections.current[peerID].close();
+        const handleRemovePeer = ({ peerId }) => {
+            if (peerConnections.current[peerId]) {
+                peerConnections.current[peerId].close();
             }
 
-            delete peerConnections.current[peerID];
-            delete peerMediaElements.current[peerID];
+            delete peerConnections.current[peerId];
+            delete peerMediaElements.current[peerId];
 
-            updateClients(list => list.filter(c => c !== peerID));
+            updateClients(list => list.filter(c => c !== peerId));
         };
 
         socket.on(ACTION.REMOVE_PEER, handleRemovePeer);
@@ -187,7 +187,9 @@ export default function userRtcConnection(roomID) {
         startCapture()
             .then(() => socket.send({
                 action: ACTION.JOIN,
-                data: { roomID }
+                data: { roomId, client: {
+                        'id': 'inputEm323a2il2', 'name': 'input3Name3232', 'email': 'inpu3t3323Email'
+                    } }
             }))
             .catch(e => console.error('Error getting userMedia:', e));
 
@@ -196,7 +198,7 @@ export default function userRtcConnection(roomID) {
 
             socket.send({ action: ACTION.LEAVE, data: {} });
         };
-    }, [roomID]);
+    }, [roomId]);
 
     const provideMediaRef = useCallback((id, node) => {
         peerMediaElements.current[id] = node;

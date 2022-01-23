@@ -48,6 +48,6 @@ def to_snake_case(camel_str: str) -> str:
 
 def transform_dict_keys(data_dict: t.Dict[str, t.Any], transform: t.Callable):
     data = {}
-    for key, val in data_dict:
+    for key, val in data_dict.items():
         data[transform(key)] = val
     return data

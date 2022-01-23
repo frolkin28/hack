@@ -7,7 +7,7 @@ import {useHistory, useParams} from "react-router";
 import {postRoom} from "../../../api/room";
 
 export const CreateRoom = () => {
-    const {id: roomID} = useParams();
+    const {id: roomId} = useParams();
     const history = useHistory();
 
     const [inputEmail, setInputEmail] = useState('');
@@ -17,18 +17,15 @@ export const CreateRoom = () => {
         e.preventDefault();
         console.log(inputEmail);
         console.log(inputName);
-        if(typeof roomID !== "undefined") {
-            history.push(`/room/${roomID}`);
+        if(typeof roomId !== "undefined") {
+            history.push(`/room/${roomId}`);
         } else {
             postRoom().then((url) => {
-                console.log(url)
                 if (Boolean(url)) {
                     history.push(`/room/${url}`);
                 }
             })
         }
-
-
     };
 
     return (

@@ -48,7 +48,7 @@ async def join_processor(
 
     for client in room.clients:
         msg_data = {
-            'action': Action.ADD_PEER,
+            'action': Action.ADD_PEER.value,
             'data': {
                 'peer_id': curr_client.id,
                 'create_offer': False
@@ -57,7 +57,7 @@ async def join_processor(
         await send_msg(client.ws, msg_data)
 
         msg_data = {
-            'action': Action.ADD_PEER,
+            'action': Action.ADD_PEER.value,
             'data': {
                 'peer_id': client.id,
                 'create_offer': True
@@ -65,7 +65,7 @@ async def join_processor(
         }
         await send_msg(curr_client.ws, msg_data)
 
-    room.add_client(client)
+    room.add_client(curr_client)
 
 
 async def leave_processor(
@@ -85,7 +85,7 @@ async def leave_processor(
 
     for client in room.clients:
         msg_data = {
-            'action': Action.REMOVE_PEER,
+            'action': Action.REMOVE_PEER.value,
             'data': {
                 'peer_id': curr_client.id,
             }
@@ -93,7 +93,7 @@ async def leave_processor(
         await send_msg(client.ws, msg_data)
 
         msg_data = {
-            'action': Action.REMOVE_PEER,
+            'action': Action.REMOVE_PEER.value,
             'data': {
                 'peer_id': client.id,
             }
@@ -119,7 +119,7 @@ async def relay_sdp_processor(
         return
 
     msg_data = {
-        'action': Action.SESSION_DESCRIPTION,
+        'action': Action.SESSION_DESCRIPTION.value,
         'data': {
             'peer_id': curr_client.id,
             'session_description': data['session_description']
@@ -144,7 +144,7 @@ async def relay_ice_processor(
         return
 
     msg_data = {
-        'action': Action.ICE_CANDIDATE,
+        'action': Action.ICE_CANDIDATE.value,
         'data': {
             'peer_id': curr_client.id,
             'ice_candidate': data['ice_candidate']
@@ -165,13 +165,14 @@ ACTIONS_PROCESSORS_MAPPING: t.Dict[Action, t.Callable] = {
 async def process_msg(
     app: web.Application, ws: web.WebSocketResponse, msg: WSMessage
 ) -> None:
-    msg_data: BaseMessage = transform_dict_keys(
-        json.loads(msg.data),
+    msg_data: BaseMessage = json.loads(msg.data)
+
+    action = Action(msg_data['action'])
+    data = transform_dict_keys(
+        msg_data['data'],
         to_snake_case
     )
 
-    action = Action(msg_data['action'])
-    data = msg_data['data']
 
     processor = ACTIONS_PROCESSORS_MAPPING[action]
     await processor(app, ws, data)
