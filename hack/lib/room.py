@@ -44,6 +44,7 @@ def prepare_client_data(client: Client) -> t.Dict[str, t.Any]:
 def prepare_room_data(room: Room) -> t.Dict[str, t.Any]:
     return {
         'roomId': room.id,
+        'organizerEmail': room.organizer_email,
         'clients': [
             prepare_client_data(client) for client in room.clients
         ]

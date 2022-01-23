@@ -20,6 +20,7 @@ import ACTION from "../../../util/action";
 import { MainContext } from "../../App/context";
 import userRtcConnection from "../../../hooks/useRtcConnection";
 import socket from "../../../util/websocket";
+import {getRoom} from "../../../api/room";
 
 const ReactHint = ReactHintFactory(React);
 
@@ -27,7 +28,7 @@ export const Room = () => {
     const { id: roomId } = useParams();
     const { email: [inputEmail] } = useContext(MainContext);
     const { name: [inputName] } = useContext(MainContext);
-    const { organizer: [isOrganizer] } = useContext(MainContext);
+    const { organizer: [isOrganizer, setIsOrganizer] } = useContext(MainContext);
     const { clients: [clients, setClients] } = useContext(MainContext);
 
     const [isMicrophoneOn, setIsMicrophoneOn] = useState(true);
@@ -37,7 +38,7 @@ export const Room = () => {
         return <Redirect to={`/join/${roomId}`} />
     }
 
-    
+
     const { provideMediaRef, controlMediaStream } = userRtcConnection(roomId, socket);
 
     const history = useHistory();
@@ -61,6 +62,16 @@ export const Room = () => {
         socket.send({ action: ACTION.DELETE_CLIENT, data: { roomId, peerId } });
         setClients(list => list.filter(el => el.peerId !== peerId));
     }
+
+    useEffect(() => {
+        console.log(roomId)
+        getRoom(roomId).then((email) => {
+            if (email === inputEmail) {
+                setIsOrganizer(true);
+            }
+        })
+        }, [roomId]
+    )
 
     useEffect(() => {
         controlMediaStream(isMicrophoneOn, isVideoOn);

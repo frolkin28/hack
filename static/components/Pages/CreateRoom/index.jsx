@@ -57,7 +57,9 @@ export const CreateRoom = () => {
                 />
             </div>
             <p className={css.error}>{errors}</p>
-            <Button onClick={handleSubmit} disabled={Boolean(errors)}>Go</Button>
+            <Button onClick={handleSubmit} disabled={Boolean(errors)}>
+                {Boolean(roomId) ? 'Join' : 'Create'}
+            </Button>
         </div>
     )
 

@@ -89,7 +89,7 @@ async def post_room(request: web.Request) -> web.Response:
 
     return web.Response(
         status=web.HTTPOk.status_code,
-        body=json.dumps({'room_id': room.id})
+        body=json.dumps({'roomId': room.id})
     )
 
 
