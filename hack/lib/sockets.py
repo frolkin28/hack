@@ -20,7 +20,7 @@ from hack.lib.message import (
     SessionDescriptionMessageData,
     DeleteClientMessageData,
 )
-from hack.lib.room import get_room, log_room
+from hack.lib.room import get_room, log_room, remove_room
 from hack.models import Client, Room
 from hack.utils import to_snake_case
 from hack.utils import transform_dict_keys
@@ -69,7 +69,7 @@ async def send_msg(
         return
 
     msg_data['data'] = transform_dict_keys(msg_data['data'], to_camel_case)
-    log.debug(f'\n\n{"#" * 50}\n send_msg data {msg_data}\n{"#" * 50}\n')
+    log.debug(f'send_msg data {msg_data}')
     await ws.send_json(msg_data)
 
 
@@ -151,7 +151,7 @@ async def leave_processor(
         log.error(f'Client not found in room {room_id}')
         return
 
-    await _remove_from_room(room, client_to_remove=curr_client)
+    await remove_from_room(room, client_to_remove=curr_client)
     log.info(f'Client: {curr_client.peer_id} left room: {room.id}')
     log_room(room)
 
@@ -182,7 +182,7 @@ async def delete_client_processor(
         log.error(f'Client {data["peer_id"]} isnt in room {room.id}')
         return
 
-    await _remove_from_room(room, client_to_remove=client_to_remove)
+    await remove_from_room(room, client_to_remove=client_to_remove)
     log.info(
         f'Client: {client_to_remove.peer_id} was delete from room: {room.id} '
         f'by client {curr_client.peer_id}'
@@ -190,7 +190,7 @@ async def delete_client_processor(
     log_room(room)
 
 
-async def _remove_from_room(room: Room, client_to_remove: Client) -> None:
+async def remove_from_room(room: Room, client_to_remove: Client) -> None:
     for client in room.clients:
         msg_data = {
             'action': Action.REMOVE_PEER.value,
@@ -210,6 +210,13 @@ async def _remove_from_room(room: Room, client_to_remove: Client) -> None:
 
     room.remove_client(client_to_remove.peer_id)
     await client_to_remove.ws.close()
+
+
+async def close_room(app: web.Application, room: Room) -> None:
+    for client in room.clients:
+        await remove_from_room(room, client)
+
+    remove_room(app, room.id)
 
 
 async def relay_sdp_processor(

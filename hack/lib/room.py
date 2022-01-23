@@ -9,10 +9,24 @@ from hack.models import Room, Client
 log = logging.getLogger(__name__)
 
 
+def get_all_rooms(app: web.Application) -> t.List[Room]:
+    return app.rooms.values()
+
+
+def get_all_rooms_ids(app: web.Application) -> t.List[Room]:
+    return app.rooms.keys()
+
+
 def get_room(app: web.Application, room_id: str) -> t.Optional[Room]:
     return app.rooms.get(room_id)
 
-# TODO: add get_rooms(), add_room(), remove_room()
+
+def add_room(app: web.Application, room: Room) -> None:
+    app.rooms[room.id] = room
+
+
+def remove_room(app: web.Application, room_id: str) -> None:
+    app.rooms.pop(room_id)
 
 
 def prepare_client_data(client: Client) -> t.Dict[str, t.Any]:
@@ -35,8 +49,4 @@ def prepare_room_data(room: Room) -> t.Dict[str, t.Any]:
 
 
 def log_room(room: Room) -> None:
-    log.debug(
-        f'\n\n{"#" * 50}\n '
-        f'room status {prepare_room_data(room)}'
-        f'\n{"#" * 50}\n'
-    )
+    log.debug(f'room status {prepare_room_data(room)}')
