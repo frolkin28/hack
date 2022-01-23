@@ -57,3 +57,5 @@ typing-extensions==3.7.4.1  # via aiohttp, mypy
 wcwidth==0.1.9            # via pytest
 yarl==1.4.2               # via aiohttp
 zipp==3.1.0               # via importlib-metadata
+
+pytest-mock==3.1.0

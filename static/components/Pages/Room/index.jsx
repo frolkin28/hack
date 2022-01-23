@@ -1,7 +1,7 @@
 import * as React from "react";
-import {useContext, useEffect, useState} from "react";
-import {Redirect} from "react-router-dom";
-import {useHistory, useParams} from "react-router";
+import { useContext, useEffect, useState } from "react";
+import { Redirect } from "react-router-dom";
+import { useHistory, useParams } from "react-router";
 import {
     faCopy,
     faMicrophone,
@@ -15,20 +15,20 @@ import ReactHintFactory from "react-hint";
 import "react-hint/css/index.css";
 
 import css from './style.css';
-import {IconButton} from "../../IconButton";
-import socket from "../../../util/websocket";
+import { IconButton } from "../../IconButton";
 import ACTION from "../../../util/action";
-import {MainContext} from "../../App/context";
+import { MainContext } from "../../App/context";
 import userRtcConnection from "../../../hooks/useRtcConnection";
+import socket from "../../../util/websocket";
 
 const ReactHint = ReactHintFactory(React);
 
 export const Room = () => {
-    const {id: roomId} = useParams();
-    const {email: [inputEmail]} = useContext(MainContext);
-    const {name: [inputName]} = useContext(MainContext);
-    const {organizer: [isOrganizer]} = useContext(MainContext);
-    const {clients: [clients, setClients]} = useContext(MainContext);
+    const { id: roomId } = useParams();
+    const { email: [inputEmail] } = useContext(MainContext);
+    const { name: [inputName] } = useContext(MainContext);
+    const { organizer: [isOrganizer] } = useContext(MainContext);
+    const { clients: [clients, setClients] } = useContext(MainContext);
 
     const [isMicrophoneOn, setIsMicrophoneOn] = useState(true);
     const [isVideoOn, setIsVideoOn] = useState(true);
@@ -37,7 +37,8 @@ export const Room = () => {
         return <Redirect to={`/join/${roomId}`} />
     }
 
-    const {provideMediaRef, controlMediaStream} = userRtcConnection(roomId);
+    
+    const { provideMediaRef, controlMediaStream } = userRtcConnection(roomId, socket);
 
     const history = useHistory();
 
@@ -52,11 +53,12 @@ export const Room = () => {
     };
 
     const handleLeaveRoom = () => {
+        setClients([]);
         history.push('/');
     };
 
     const handleDeleteClient = (peerId) => {
-        socket.send({ action: ACTION.DELETE_CLIENT, data: {roomId, peerId} });
+        socket.send({ action: ACTION.DELETE_CLIENT, data: { roomId, peerId } });
         setClients(list => list.filter(el => el.peerId !== peerId));
     }
 
@@ -65,7 +67,7 @@ export const Room = () => {
     }, [isMicrophoneOn, isVideoOn]);
 
     window.onbeforeunload = function () {
-        socket.send({ action: ACTION.LEAVE, data: {roomId} });
+        socket.send({ action: ACTION.LEAVE, data: { roomId } });
         return "Do you really want to close?";
     };
 
@@ -130,12 +132,12 @@ export const Room = () => {
                     <ReactHint
                         events={{ click: true }}
                         attribute="data-custom"
-                        onRenderContent={() => {return 'URL copied'}}
+                        onRenderContent={() => { return 'URL copied' }}
                     />
                     <div data-custom>
                         <IconButton
                             icon={faCopy}
-                            onClick={() => {navigator.clipboard.writeText(document.URL)}}
+                            onClick={() => { navigator.clipboard.writeText(document.URL) }}
                         />
                     </div>
 

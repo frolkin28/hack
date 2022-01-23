@@ -9,9 +9,10 @@ import {
 } from "react-router-dom";
 
 import css from './style.css';
-import {NotFoundPage} from "../Pages/NotFoundPage";
+import { NotFoundPage } from "../Pages/NotFoundPage";
 import { CreateRoom } from "../Pages/CreateRoom";
 import { Room } from "../Pages/Room";
+
 
 
 export const App = () => {

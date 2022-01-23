@@ -73,6 +73,16 @@ async def get_room(request: web.Request) -> web.Response:
     )
 
 
+async def get_rooms(request: web.Request) -> web.Response:
+
+    return web.Response(
+        status=web.HTTPOk.status_code,
+        body=json.dumps(
+            [prepare_room_data(room) for room in get_all_rooms(request.app)]
+        )
+    )
+
+
 async def post_room(request: web.Request) -> web.Response:
     room = Room()
     add_room(request.app, room)
@@ -93,13 +103,14 @@ async def delete_room(request: web.Request) -> web.Response:
             text=f'Room {room_id} doesnt exist'
         )
 
-    await close_room(request.app, room)
+    await close_room(request.app, room.id)
 
     return web.Response(status=web.HTTPOk.status_code)
 
 
 async def delete_all_rooms(request: web.Request) -> web.Response:
-    for room in get_all_rooms(request.app):
-        await close_room(request.app, room)
+    rooms_ids = get_all_rooms_ids(request.app)
+    for room_id in rooms_ids:
+        await close_room(request.app, room_id)
 
     return web.Response(status=web.HTTPOk.status_code)

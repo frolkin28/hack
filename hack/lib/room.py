@@ -13,8 +13,8 @@ def get_all_rooms(app: web.Application) -> t.List[Room]:
     return app.rooms.values()
 
 
-def get_all_rooms_ids(app: web.Application) -> t.List[Room]:
-    return app.rooms.keys()
+def get_all_rooms_ids(app: web.Application) -> t.List[str]:
+    return list(app.rooms.keys())
 
 
 def get_room(app: web.Application, room_id: str) -> t.Optional[Room]:
@@ -23,10 +23,12 @@ def get_room(app: web.Application, room_id: str) -> t.Optional[Room]:
 
 def add_room(app: web.Application, room: Room) -> None:
     app.rooms[room.id] = room
+    log.info(f'Room {room.id} added')
 
 
 def remove_room(app: web.Application, room_id: str) -> None:
     app.rooms.pop(room_id)
+    log.info(f'Room {room_id} removed')
 
 
 def prepare_client_data(client: Client) -> t.Dict[str, t.Any]:
