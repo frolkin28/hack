@@ -33,18 +33,28 @@
 
 .bodyPeoples {
     display: flex;
-    flex-wrap: wrap;
     width: 78%;
     align-items: center;
     justify-content: center;
 }
 
 .person {
-    min-height: 17em;
     min-width: 22em;
     margin: 10px;
     background-color: black;
+    text-align: center;
     border-radius: 10%;
+}
+
+.personVideo {
+    border-top-left-radius: 10%;
+    border-top-right-radius: 10%;
+}
+
+.name {
+    justify-content: space-between;
+    display: flex;
+    align-items: center;
 }
 
 

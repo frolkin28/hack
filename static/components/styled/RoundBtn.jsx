@@ -16,3 +16,19 @@ export const RoundButton = styled("button")`
     background-color: ${colors.secondary};
   }
 `;
+
+
+
+export const SmallRoundButton = styled("button")`
+  border-radius: 50%;
+  background-color: ${colors.primary};
+  border: none;
+  color: white;
+  width: 2em;
+  height: 2em;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: ${colors.secondary};
+  }
+`;

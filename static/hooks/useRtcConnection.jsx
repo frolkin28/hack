@@ -7,18 +7,18 @@ import freeice from 'freeice';
 import useStateWithCallback from './useStateWithCallback';
 import socket from '../util/websocket';
 import ACTION from '../util/action';
-import { MainContext } from "../components/App/context";
+import {MainContext} from "../components/App/context";
 
-export const LOCAL_VIDEO = 'LOCAL_VIDEO';
 export const MEDIA_STREAM_STATE = {
     ON: true,
     OFF: false,
 }
 
 
-export default function useRtcConnection(roomId) {
-    const { email: [inputEmail] } = useContext(MainContext);
-    const { name: [inputName] } = useContext(MainContext);
+export default function userRtcConnection(roomId) {
+    const {email: [inputEmail]} = useContext(MainContext);
+    const {name: [inputName]} = useContext(MainContext);
+    const {organizer: [isOrganizer]} = useContext(MainContext);
 
     const [clients, updateClients] = useStateWithCallback([]);
 
@@ -35,11 +35,12 @@ export default function useRtcConnection(roomId) {
     const peerConnections = useRef({});
     const localMediaStream = useRef(null);
     const peerMediaElements = useRef({
-        [LOCAL_VIDEO]: null,
+        [inputEmail]: null,
     });
 
     useEffect(() => {
-        const handleNewPeer = async ({ peerId, createOffer }) => {
+        const handleNewPeer = async ({ client, createOffer }) => {
+            const peerId = client.peerId;
             if (peerId in peerConnections.current) {
                 return console.warn(`Already connected to peer ${peerId}`);
             }
@@ -67,7 +68,7 @@ export default function useRtcConnection(roomId) {
 
                 if (tracksNumber === 2) {
                     tracksNumber = 0;
-                    addNewClient(peerId, () => {
+                    addNewClient(client, () => {
                         if (peerMediaElements.current[peerId]) {
                             peerMediaElements.current[peerId].srcObject = remoteStream;
                         } else {
@@ -184,14 +185,8 @@ export default function useRtcConnection(roomId) {
                 }
             });
 
-            // debug video
-            // const localStream = localMediaStream.current;
-            // if (localStream && localMediaStream.current.getVideoTracks().lenght) {
-            //     localMediaStream.current.getVideoTracks()[0].enabled = false
-            // }
-
-            addNewClient(LOCAL_VIDEO, () => {
-                const localVideoElement = peerMediaElements.current[LOCAL_VIDEO];
+            addNewClient({email: inputEmail, peerId: inputEmail, name: inputName}, () => {
+                const localVideoElement = peerMediaElements.current[inputEmail];
 
                 if (localVideoElement) {
                     localVideoElement.volume = 0;
@@ -203,18 +198,17 @@ export default function useRtcConnection(roomId) {
         startCapture()
             .then(() => socket.send({
                 action: ACTION.JOIN,
-                data: {
-                    roomId, client: {
-                        'id': inputEmail, 'name': inputName, 'email': inputEmail
-                    }
-                }
+                data: { roomId, client: {
+                        'peerId': inputEmail, 'name': inputName, 'email': inputEmail, isOrganizer: isOrganizer
+                    }}
             }))
             .catch(e => console.error('Error getting userMedia:', e));
 
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
-
-            socket.send({ action: ACTION.LEAVE, data: { roomId } });
+            socket.send({ action: ACTION.LEAVE, data: {roomId} });
+            console.log(clients)
+            clients.remove(function(client) { return client.email === inputEmail; });
         };
     }, [roomId]);
 
@@ -259,17 +253,12 @@ export default function useRtcConnection(roomId) {
                 console.log(localMediaStream.current.getVideoTracks())
             }
         }
-
-        // if (localStream) {
-        //     console.log('End hook')
-        //     console.log(localMediaStream.current.getAudioTracks())
-        //     console.log(localMediaStream.current.getVideoTracks())
-        // }
     });
 
     return {
         clients,
+        updateClients,
         provideMediaRef,
-        controlMediaStream
+        controlMediaStream,
     };
 }
