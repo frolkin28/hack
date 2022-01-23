@@ -150,7 +150,7 @@ async def relay_ice_processor(
     await send_msg(target_client.ws, msg_data)
 
 
-ACTIONS_PROCESSORS_MAPPING: {Action, t.Callable} = {
+ACTIONS_PROCESSORS_MAPPING: t.Dict[Action, t.Callable] = {
     Action.JOIN: join_processor,
     Action.LEAVE: leave_processor,
     Action.RELAY_SDP: relay_sdp_processor,
