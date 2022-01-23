@@ -19,8 +19,8 @@ export const CreateRoom = () => {
 
     const HandleInputEmail = (value) => {
         setInputEmail(value);
-        // const emailValid = value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i);
-        // setErrors(emailValid ? '' : 'Invalid email.');
+        const emailValid = value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i);
+        setErrors(emailValid ? '' : 'Invalid email.');
     }
 
     const handleSubmit = (e) => {

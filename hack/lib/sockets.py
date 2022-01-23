@@ -39,6 +39,7 @@ ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
     Action.ICE_CANDIDATE: IceCandidateMessageData,
     Action.SESSION_DESCRIPTION: SessionDescriptionMessageData,
     Action.DELETE_CLIENT: DeleteClientMessageData,
+    Action.CLIENT_DELETED: None,
 }
 
 
@@ -213,8 +214,10 @@ async def remove_from_room(room: Room, client_to_remove: Client) -> None:
     room.remove_client(client_to_remove.peer_id)
 
     msg_data = {
-        'action': Action.CLIENT_DELETED,
-        'data': {}
+        'action': Action.CLIENT_DELETED.value,
+        'data': {
+            'peer_id': client.peer_id,
+        }
     }
     await send_msg(client_to_remove.ws, msg_data)
     await client_to_remove.ws.close()

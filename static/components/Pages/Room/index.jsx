@@ -57,9 +57,7 @@ export const Room = () => {
 
     const handleDeleteClient = (peerId) => {
         socket.send({ action: ACTION.DELETE_CLIENT, data: {roomId, peerId} });
-        console.log(clients);
-        setClients(list => list.filter(el => el !== peerId));
-        console.log(clients);
+        setClients(list => list.filter(el => el.peerId !== peerId));
     }
 
     useEffect(() => {

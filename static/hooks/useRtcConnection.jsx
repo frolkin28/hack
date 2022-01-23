@@ -1,13 +1,14 @@
+import React from 'react';
 import {
     useEffect,
     useRef,
     useCallback, useContext,
 } from 'react';
 import freeice from 'freeice';
-import useStateWithCallback from './useStateWithCallback';
 import socket from '../util/websocket';
 import ACTION from '../util/action';
 import {MainContext} from "../components/App/context";
+import {Redirect} from "react-router-dom";
 
 export const MEDIA_STREAM_STATE = {
     ON: true,
@@ -165,13 +166,30 @@ export default function userRtcConnection(roomId) {
             delete peerConnections.current[peerId];
             delete peerMediaElements.current[peerId];
 
-            setClients(list => list.filter(el => el !== peerId));
+            setClients(list => list.filter(el => el.peerId !== peerId));
         };
 
         socket.on(ACTION.REMOVE_PEER, handleRemovePeer);
 
         return () => {
             socket.off(ACTION.REMOVE_PEER);
+        }
+    }, []);
+
+    useEffect(() => {
+        const handleClientDeleted = ({ peerId }) => {
+            console.log('peerId')
+            console.log(peerId)
+            console.log(inputEmail)
+            if (inputEmail === peerId) {
+                return <Redirect to='/' />
+            }
+        };
+
+        socket.on(ACTION.CLIENT_DELETED, handleClientDeleted);
+
+        return () => {
+            socket.off(ACTION.CLIENT_DELETED);
         }
     }, []);
 
@@ -207,7 +225,7 @@ export default function userRtcConnection(roomId) {
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
             socket.send({ action: ACTION.LEAVE, data: {roomId} });
-            setClients(list => list.filter(el => el !== inputEmail));
+            setClients(list => list.filter(el => el.email !== inputEmail));
         };
     }, [roomId]);
 

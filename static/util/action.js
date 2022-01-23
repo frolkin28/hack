@@ -8,6 +8,7 @@ const ACTION = {
   ICE_CANDIDATE: 'ice-candidate',
   SESSION_DESCRIPTION: 'session-description',
   DELETE_CLIENT: 'delete-client',
+  CLIENT_DELETED: 'client-deleted',
 };
 
 export default ACTION;
