@@ -7,14 +7,14 @@ import freeice from 'freeice';
 import useStateWithCallback from './useStateWithCallback';
 import socket from '../util/websocket';
 import ACTION from '../util/action';
-import {MainContext} from "../components/App/context";
+import { MainContext } from "../components/App/context";
 
 export const LOCAL_VIDEO = 'LOCAL_VIDEO';
 
 
-export default function userRtcConnection(roomId) {
-    const {email: [inputEmail]} = useContext(MainContext);
-    const {name: [inputName]} = useContext(MainContext);
+export default function useRtcConnection(roomId) {
+    const { email: [inputEmail] } = useContext(MainContext);
+    const { name: [inputName] } = useContext(MainContext);
 
     const [clients, updateClients] = useStateWithCallback([]);
 
@@ -193,22 +193,25 @@ export default function userRtcConnection(roomId) {
         startCapture()
             .then(() => socket.send({
                 action: ACTION.JOIN,
-                data: { roomId, client: {
+                data: {
+                    roomId, client: {
                         'id': inputEmail, 'name': inputName, 'email': inputEmail
-                    } }
+                    }
+                }
             }))
             .catch(e => console.error('Error getting userMedia:', e));
 
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
 
-            socket.send({ action: ACTION.LEAVE, data: {roomId} });
+            socket.send({ action: ACTION.LEAVE, data: { roomId } });
         };
     }, [roomId]);
 
     const provideMediaRef = useCallback((id, node) => {
         peerMediaElements.current[id] = node;
     }, []);
+ 
 
     return {
         clients,

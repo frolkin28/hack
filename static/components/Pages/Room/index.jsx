@@ -1,6 +1,6 @@
 import * as React from "react";
-import {useEffect, useRef, useState} from "react";
-import {useParams} from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router";
 import {
     faMicrophone,
     faMicrophoneSlash,
@@ -11,12 +11,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import css from './style.css';
-import {IconButton} from "../../IconButton";
-import userRtcConnection from "../../../hooks/userRtcConnection";
+import { IconButton } from "../../IconButton";
+import useRtcConnection from "../../../hooks/useRtcConnection";
 
 
 function layout(clientsNumber = 1) {
-    const pairs = Array.from({length: clientsNumber})
+    const pairs = Array.from({ length: clientsNumber })
         .reduce((acc, next, index, arr) => {
             if (index % 2 === 0) {
                 acc.push(arr.slice(index, index + 2));
@@ -46,8 +46,8 @@ function layout(clientsNumber = 1) {
 
 
 export const Room = () => {
-    const {id: roomId} = useParams();
-    const {clients, provideMediaRef} = userRtcConnection(roomId);
+    const { id: roomId } = useParams();
+    const { clients, provideMediaRef } = useRtcConnection(roomId);
     console.log(clients)
     const videoLayout = layout(clients.length);
 
@@ -98,10 +98,10 @@ export const Room = () => {
                     : <IconButton icon={faMicrophoneSlash} />
                 }
                 {true
-                    ? <IconButton icon={faVideo} onClick={stopVideo}/>
+                    ? <IconButton icon={faVideo} onClick={stopVideo} />
                     : <IconButton icon={faVideoSlash} />
                 }
-                <IconButton icon={faPhoneSlash}/>
+                <IconButton icon={faPhoneSlash} />
             </div>
         </div>
     );
