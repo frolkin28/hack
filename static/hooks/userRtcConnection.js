@@ -14,7 +14,6 @@ export const LOCAL_VIDEO = 'LOCAL_VIDEO';
 
 export default function userRtcConnection(roomID) {
     const [clients, updateClients] = useStateWithCallback([]);
-    const [clients, updateClients] = useState([]);
 
     const addNewClient = useCallback((newClient, cb) => {
         updateClients(list => {
@@ -93,7 +92,7 @@ export default function userRtcConnection(roomID) {
                     action: ACTION.RELAY_SDP,
                     data: {
                         peerID,
-                        sessionDescription
+                        sessionDescription: offer
                     }
                 });
             }
@@ -121,7 +120,7 @@ export default function userRtcConnection(roomID) {
                     action: ACTION.RELAY_SDP,
                     data: {
                         peerID,
-                        sessionDescription
+                        sessionDescription: answer
                     }
                 });
             }
