@@ -10,3 +10,4 @@ class Action(Enum):
     RELAY_ICE = 'relay-ice'
     ICE_CANDIDATE = 'ice-candidate'
     SESSION_DESCRIPTION = 'session-description'
+    DELETE_CLIENT = 'delete-client'

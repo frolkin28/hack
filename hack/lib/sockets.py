@@ -18,9 +18,10 @@ from hack.lib.message import (
     RelayIceMessageData,
     IceCandidateMessageData,
     SessionDescriptionMessageData,
+    DeleteClientMessageData,
 )
 from hack.lib.room import get_room, log_room
-from hack.models import Client
+from hack.models import Client, Room
 from hack.utils import to_snake_case
 from hack.utils import transform_dict_keys
 from hack.utils import to_camel_case
@@ -37,6 +38,7 @@ ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
     Action.RELAY_ICE: RelayIceMessageData,
     Action.ICE_CANDIDATE: IceCandidateMessageData,
     Action.SESSION_DESCRIPTION: SessionDescriptionMessageData,
+    Action.DELETE_CLIENT: DeleteClientMessageData,
 }
 
 
@@ -78,7 +80,7 @@ async def join_processor(
     room_id = data['room_id']
     room = get_room(app, room_id)
     if not room:
-        log.warning(f'Try joining to non-existent room {room_id}')
+        log.warning(f'Room not found {room_id}')
         return
 
     curr_client = Client(
@@ -140,7 +142,7 @@ async def leave_processor(
     room_id = data['room_id']
     room = get_room(app, room_id)
     if not room:
-        log.warning(f'Try joining to non-existent room {room_id}')
+        log.warning(f'Room not found {room_id}')
         return
 
     curr_client = room.get_client_by_ws(ws)
@@ -149,11 +151,51 @@ async def leave_processor(
         log.error(f'Client not found in room {room_id}')
         return
 
+    await _remove_from_room(room, client_to_remove=curr_client)
+    log.info(f'Client: {curr_client.peer_id} left room: {room.id}')
+    log_room(room)
+
+
+async def delete_client_processor(
+    app: web.Application, ws: web.WebSocketResponse, data: t.Dict[str, t.Any]
+) -> None:
+    room_id = data['room_id']
+    room = get_room(app, room_id)
+    if not room:
+        log.warning(f'Room not found {room_id}')
+        return
+
+    curr_client = room.get_client_by_ws(ws)
+
+    if not curr_client:
+        log.error(f'Client not found in room {room_id}')
+        return
+
+    if not curr_client.is_organizer:
+        log.error(
+            f'Client {curr_client.peer_id} isnt organizer of room {room.id}'
+        )
+        return
+
+    client_to_remove = room.get_client_by_peer_id(data['peer_id'])
+    if not client_to_remove:
+        log.error(f'Client {data["peer_id"]} isnt in room {room.id}')
+        return
+
+    await _remove_from_room(room, client_to_remove=client_to_remove)
+    log.info(
+        f'Client: {client_to_remove.peer_id} was delete from room: {room.id} '
+        f'by client {curr_client.peer_id}'
+    )
+    log_room(room)
+
+
+async def _remove_from_room(room: Room, client_to_remove: Client) -> None:
     for client in room.clients:
         msg_data = {
             'action': Action.REMOVE_PEER.value,
             'data': {
-                'peer_id': curr_client.peer_id,
+                'peer_id': client_to_remove.peer_id,
             }
         }
         await send_msg(client.ws, msg_data)
@@ -164,12 +206,10 @@ async def leave_processor(
                 'peer_id': client.peer_id,
             }
         }
-        await send_msg(curr_client.ws, msg_data)
+        await send_msg(client_to_remove.ws, msg_data)
 
-    room.remove_client(curr_client.peer_id)
-    await curr_client.ws.close()
-    log.info(f'Client: {curr_client.peer_id} left room: {room.id}')
-    log_room(room)
+    room.remove_client(client_to_remove.peer_id)
+    await client_to_remove.ws.close()
 
 
 async def relay_sdp_processor(
@@ -178,7 +218,7 @@ async def relay_sdp_processor(
     room_id = data['room_id']
     room = get_room(app, room_id)
     if not room:
-        log.warning(f'Try joining to non-existent room {room_id}')
+        log.warning(f'Room not found {room_id}')
         return
 
     curr_client = room.get_client_by_ws(ws)
@@ -193,7 +233,7 @@ async def relay_sdp_processor(
             'session_description': data['session_description']
         }
     }
-    target_client = room.get_client_by_id(data['peer_id'])
+    target_client = room.get_client_by_peer_id(data['peer_id'])
     await send_msg(target_client.ws, msg_data)
     log_room(room)
 
@@ -204,7 +244,7 @@ async def relay_ice_processor(
     room_id = data['room_id']
     room = get_room(app, room_id)
     if not room:
-        log.warning(f'Try joining to non-existent room {room_id}')
+        log.warning(f'Room not found {room_id}')
         return
 
     curr_client = room.get_client_by_ws(ws)
@@ -219,7 +259,7 @@ async def relay_ice_processor(
             'ice_candidate': data['ice_candidate']
         }
     }
-    target_client = room.get_client_by_id(data['peer_id'])
+    target_client = room.get_client_by_peer_id(data['peer_id'])
     await send_msg(target_client.ws, msg_data)
     log_room(room)
 
@@ -227,6 +267,7 @@ async def relay_ice_processor(
 ACTIONS_PROCESSORS_MAPPING: t.Dict[Action, t.Callable] = {
     Action.JOIN: join_processor,
     Action.LEAVE: leave_processor,
+    Action.DELETE_CLIENT: delete_client_processor,
     Action.RELAY_SDP: relay_sdp_processor,
     Action.RELAY_ICE: relay_ice_processor,
 }
