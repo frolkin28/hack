@@ -35,7 +35,7 @@ async def join_processor(
         return
 
     curr_client = Client(
-        peer_id=data['client']['id'],
+        peer_id=data['client']['peer_id'],
         name=data['client']['name'],
         email=data['client']['email'],
         ws=ws,
