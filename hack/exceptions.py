@@ -1,0 +1,2 @@
+class ValidateActionDataException(Exception):
+    pass

@@ -21,14 +21,14 @@ LeaveMessageData = t.Dict(
 
 RelaySDPMessageData = t.Dict(
     room_id=t.String,
-    peer_id=t.Int,
-    session_description=t.String,
+    peer_id=t.String,
+    session_description=t.Any,
 )
 
 RelayIceMessageData = t.Dict(
     room_id=t.String,
-    peer_id=t.Int,
-    ice_candidate=t.String,
+    peer_id=t.String,
+    ice_candidate=t.Any,
 )
 # backend allows: END
 
@@ -44,16 +44,16 @@ AddPeerMessageData = t.Dict(
 )
 
 RemovePeerMessageData = t.Dict(
-    peer_id=t.Int,
+    peer_id=t.String,
 )
 
 SessionDescriptionMessageData = t.Dict(
-    peer_id=t.Int,
-    session_description=t.String,
+    peer_id=t.String,
+    session_description=t.Any,
 )
 
 IceCandidateMessageData = t.Dict(
-    peer_id=t.Int,
-    ice_candidate=t.String,
+    peer_id=t.String,
+    ice_candidate=t.Any,
 )
 # backend respond: END

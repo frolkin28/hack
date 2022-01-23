@@ -4,9 +4,21 @@ import logging
 import typing as t
 
 from aiohttp import web, WSMessage
+from trafaret import DataError, Trafaret
 
+from hack.exceptions import ValidateActionDataException
 from hack.lib.action import Action
-from hack.lib.message import BaseMessage
+from hack.lib.message import (
+    BaseMessage,
+    JoinMessageData,
+    LeaveMessageData,
+    AddPeerMessageData,
+    RemovePeerMessageData,
+    RelaySDPMessageData,
+    RelayIceMessageData,
+    IceCandidateMessageData,
+    SessionDescriptionMessageData,
+)
 from hack.lib.room import get_room, log_room
 from hack.models import Client
 from hack.utils import to_snake_case
@@ -16,9 +28,44 @@ from hack.utils import to_camel_case
 log = logging.getLogger(__name__)
 
 
+ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
+    Action.JOIN: JoinMessageData,
+    Action.LEAVE: LeaveMessageData,
+    Action.ADD_PEER: AddPeerMessageData,
+    Action.REMOVE_PEER: RemovePeerMessageData,
+    Action.RELAY_SDP: RelaySDPMessageData,
+    Action.RELAY_ICE: RelayIceMessageData,
+    Action.ICE_CANDIDATE: IceCandidateMessageData,
+    Action.SESSION_DESCRIPTION: SessionDescriptionMessageData,
+}
+
+
+def validate_action_data(action: Action, data: t.Dict[str, t.Any]):
+    trafaret_schema = ACTION_MESSAGE_TRAFARETS_MAPPING[action]
+    try:
+        trafaret_schema.check(data)
+    except DataError as e:
+        raise ValidateActionDataException(
+            f'Data for action: {action.value} not valid, data {data}, err {e}'
+        )
+
+
 async def send_msg(
     ws: web.WebSocketResponse, msg_data: t.Dict[str, t.Any]
 ) -> None:
+    action_str = msg_data['action']
+    try:
+        action = Action(action_str)
+    except ValueError:
+        log.warning(f'Try to send unknown action: {action_str}')
+        return
+
+    try:
+        validate_action_data(action, msg_data['data'])
+    except ValidateActionDataException as e:
+        log.warning(e)
+        return
+
     msg_data['data'] = transform_dict_keys(msg_data['data'], to_camel_case)
     log.debug(f'\n\n{"#" * 50}\n send_msg data {msg_data}\n{"#" * 50}\n')
     await ws.send_json(msg_data)
@@ -190,11 +237,29 @@ async def process_msg(
 ) -> None:
     msg_data: BaseMessage = json.loads(msg.data)
 
-    action = Action(msg_data['action'])
-    data = transform_dict_keys(
-        msg_data['data'],
-        to_snake_case
-    )
+    action_str = msg_data.get('action')
+    if not action_str:
+        log.warning(f'Received msg without action: {msg}')
+        return
+
+    data = msg_data.get('data')
+    if not data:
+        log.warning(f'Received msg without data: {msg}')
+        return
+
+    try:
+        action = Action(action_str)
+    except ValueError:
+        log.warning(f'Received unknown action: {action_str}')
+        return
+
+    data = transform_dict_keys(data, to_snake_case)
+
+    try:
+        validate_action_data(action, data)
+    except ValidateActionDataException as e:
+        log.warning(e)
+        return
 
     processor = ACTIONS_PROCESSORS_MAPPING[action]
     await processor(app, ws, data)
