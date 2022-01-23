@@ -1,5 +1,6 @@
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useState, useEffect } from "react";
+import { useHistory } from "react-router";
 import { useParams } from "react-router";
 import {
     faMicrophone,
@@ -47,15 +48,31 @@ function layout(clientsNumber = 1) {
 
 export const Room = () => {
     const { id: roomId } = useParams();
-    const { clients, provideMediaRef } = useRtcConnection(roomId);
-    console.log(clients)
+    const { clients, provideMediaRef, controlMediaStream } = useRtcConnection(roomId);
+    const history = useHistory();
+    const [isMicrophoneOn, setIsMicrophoneOn] = useState(true);
+    const [isVideoOn, setIsVideoOn] = useState(true);
+
+    const handleMicrophoneClick = () => {
+        setIsMicrophoneOn(!isMicrophoneOn);
+        controlMediaStream(isMicrophoneOn, isVideoOn);
+    };
+
+    const handleVideoClick = () => {
+        setIsVideoOn(!isVideoOn);
+        controlMediaStream(isMicrophoneOn, isVideoOn);
+    };
+
+    const handleLeaveRoom = () => {
+        history.push('/');
+    };
+
+    console.log(clients);
     const videoLayout = layout(clients.length);
 
-
-    const stopVideo = () => {
-        console.log('stop');
-    }
-
+    useEffect(() => {
+        controlMediaStream(isMicrophoneOn, isVideoOn);
+    }, [isMicrophoneOn, isVideoOn]);
 
     return (
         <div className={css.body}>
@@ -93,15 +110,21 @@ export const Room = () => {
             </div>
 
             <div className={css.footer}>
-                {true
-                    ? <IconButton icon={faMicrophone} />
-                    : <IconButton icon={faMicrophoneSlash} />
-                }
-                {true
-                    ? <IconButton icon={faVideo} onClick={stopVideo} />
-                    : <IconButton icon={faVideoSlash} />
-                }
-                <IconButton icon={faPhoneSlash} />
+                <div>
+                    {isMicrophoneOn
+                        ? <IconButton icon={faMicrophone} onClick={handleMicrophoneClick} />
+                        : <IconButton icon={faMicrophoneSlash} onClick={handleMicrophoneClick} />
+                    }
+                </div>
+                <div>
+                    {isVideoOn
+                        ? <IconButton icon={faVideo} onClick={handleVideoClick} />
+                        : <IconButton icon={faVideoSlash} onClick={handleVideoClick} />
+                    }
+                </div>
+                <div>
+                    <IconButton icon={faPhoneSlash} onClick={handleLeaveRoom} />
+                </div>
             </div>
         </div>
     );
