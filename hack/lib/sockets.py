@@ -7,7 +7,7 @@ from aiohttp import web, WSMessage
 
 from hack.lib.action import Action
 from hack.lib.message import BaseMessage
-from hack.lib.room import get_room
+from hack.lib.room import get_room, log_room
 from hack.models import Client
 from hack.utils import to_snake_case
 from hack.utils import transform_dict_keys
@@ -19,8 +19,9 @@ log = logging.getLogger(__name__)
 async def send_msg(
     ws: web.WebSocketResponse, msg_data: t.Dict[str, t.Any]
 ) -> None:
-    data = transform_dict_keys(msg_data, to_camel_case)
-    await ws.send_json(data)
+    msg_data['data'] = transform_dict_keys(msg_data['data'], to_camel_case)
+    log.debug(f'\n\n{"#" * 50}\n send_msg data {msg_data}\n{"#" * 50}\n')
+    await ws.send_json(msg_data)
 
 
 async def join_processor(
@@ -34,15 +35,15 @@ async def join_processor(
         return
 
     curr_client = Client(
-        id=data['client']['id'],
+        peer_id=data['client']['id'],
         name=data['client']['name'],
         email=data['client']['email'],
         ws=ws,
     )
 
-    if room.check_is_joined(curr_client.id):
+    if room.check_is_joined(curr_client.peer_id):
         log.warning(
-            f'Client {curr_client.id} already joined to room {room_id}'
+            f'Client {curr_client.peer_id} already joined to room {room_id}'
         )
         return
 
@@ -50,7 +51,7 @@ async def join_processor(
         msg_data = {
             'action': Action.ADD_PEER.value,
             'data': {
-                'peer_id': curr_client.id,
+                'peer_id': curr_client.peer_id,
                 'create_offer': False
             }
         }
@@ -59,13 +60,15 @@ async def join_processor(
         msg_data = {
             'action': Action.ADD_PEER.value,
             'data': {
-                'peer_id': client.id,
+                'peer_id': client.peer_id,
                 'create_offer': True
             }
         }
         await send_msg(curr_client.ws, msg_data)
 
     room.add_client(curr_client)
+    log.info(f'Client: {curr_client.peer_id} joined to room: {room.id}')
+    log_room(room)
 
 
 async def leave_processor(
@@ -87,7 +90,7 @@ async def leave_processor(
         msg_data = {
             'action': Action.REMOVE_PEER.value,
             'data': {
-                'peer_id': curr_client.id,
+                'peer_id': curr_client.peer_id,
             }
         }
         await send_msg(client.ws, msg_data)
@@ -95,13 +98,15 @@ async def leave_processor(
         msg_data = {
             'action': Action.REMOVE_PEER.value,
             'data': {
-                'peer_id': client.id,
+                'peer_id': client.peer_id,
             }
         }
         await send_msg(curr_client.ws, msg_data)
 
-    room.remove_client(curr_client.id)
+    room.remove_client(curr_client.peer_id)
     await curr_client.ws.close()
+    log.info(f'Client: {curr_client.peer_id} left room: {room.id}')
+    log_room(room)
 
 
 async def relay_sdp_processor(
@@ -121,7 +126,7 @@ async def relay_sdp_processor(
     msg_data = {
         'action': Action.SESSION_DESCRIPTION.value,
         'data': {
-            'peer_id': curr_client.id,
+            'peer_id': curr_client.peer_id,
             'session_description': data['session_description']
         }
     }
@@ -146,7 +151,7 @@ async def relay_ice_processor(
     msg_data = {
         'action': Action.ICE_CANDIDATE.value,
         'data': {
-            'peer_id': curr_client.id,
+            'peer_id': curr_client.peer_id,
             'ice_candidate': data['ice_candidate']
         }
     }
@@ -172,7 +177,6 @@ async def process_msg(
         msg_data['data'],
         to_snake_case
     )
-
 
     processor = ACTIONS_PROCESSORS_MAPPING[action]
     await processor(app, ws, data)

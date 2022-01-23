@@ -7,7 +7,8 @@ from hack.handlers import (
     delete_all_rooms,
     get_root,
     get_template,
-    websocket_handler
+    websocket_handler,
+    get_room
 )
 
 
@@ -21,6 +22,7 @@ def setup_routes(app: web.Application) -> None:
 
     # rooms
     app.router.add_post('/api/rooms', post_room)
+    app.router.add_get('/api/rooms/{room_id}', get_room)
     app.router.add_delete('/api/rooms/{room_id}', delete_room)
     app.router.add_delete('/api/rooms/delete_all', delete_all_rooms)
 

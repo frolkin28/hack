@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class Client:
-    id: str
+    peer_id: str
     name: str
     email: str
     ws: WebSocketResponse
@@ -27,9 +27,11 @@ class Room:
     def add_client(self, client: Client) -> None:
         self.clients.append(client)
 
-    def remove_client(self, client_id: str) -> None:
+    def remove_client(self, client_peer_id: str) -> None:
         self.clients = [
-            client for client in self.clients if client.id != client_id
+            client
+            for client in self.clients
+            if client.peer_id != client_peer_id
         ]
 
     async def close(self):
@@ -38,9 +40,9 @@ class Room:
         for ws in self.ws_list:
             await ws.close()
 
-    def get_client_by_id(self, client_id: str) -> t.Optional[Client]:
+    def get_client_by_id(self, client_peer_id: str) -> t.Optional[Client]:
         for _client in self.clients:
-            if client_id == _client.id:
+            if client_peer_id == _client.peer_id:
                 return _client
 
         return None
@@ -52,8 +54,8 @@ class Room:
 
         return None
 
-    def check_is_joined(self, client_id: str) -> bool:
-        return client_id in (client.id for client in self.clients)
+    def check_is_joined(self, client_peer_id: str) -> bool:
+        return client_peer_id in (client.peer_id for client in self.clients)
 
     @property
     def ws_list(self) -> t.List[WebSocketResponse]:

@@ -7,6 +7,7 @@ from aiohttp.web_fileresponse import FileResponse
 from aiohttp.web_request import Request
 
 from hack.config import INDEX_PATH
+from hack.lib.room import prepare_room_data_to_api
 
 from hack.lib.sockets import process_msg
 from hack.models import Room
@@ -31,14 +32,17 @@ async def websocket_handler(request):
     await ws.prepare(request)
 
     async for msg in ws:
-        log.info(f'\n\n\n\n{"#"*100}\n msg {msg}\n{"#"*100}\n\n')
+        log.debug(f'\n\n{"#" * 50}\n msg {msg}\n{"#" * 50}\n')
         if msg.type == aiohttp.WSMsgType.TEXT:
             if msg.data == 'close':
                 await ws.close()
             else:
                 await process_msg(request.app, ws, msg)
-                # TODO: remove
-                # await ws.send_str(msg.data + '/answer')
+                log.debug(
+                    f'\n\n{"#" * 50}\n all rooms '
+                    f'{request.app.rooms.keys()}'
+                    f'\n{"#" * 50}\n'
+                )
         elif msg.type == aiohttp.WSMsgType.ERROR:
             log.error(
                 f'ws connection closed with exception {ws.exception()}'
@@ -47,6 +51,22 @@ async def websocket_handler(request):
     log.info('websocket connection closed')
 
     return ws
+
+
+async def get_room(request: web.Request) -> web.Response:
+    room_id = request.match_info['room_id']
+
+    room = request.app.rooms.get(room_id)
+    if not room:
+        return web.Response(
+            status=web.HTTPNotFound.status_code,
+            text=f'Room {room_id} doesnt exist'
+        )
+
+    return web.Response(
+        status=web.HTTPOk.status_code,
+        body=json.dumps(prepare_room_data_to_api(room))
+    )
 
 
 async def post_room(request: web.Request) -> web.Response:

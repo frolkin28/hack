@@ -9,7 +9,7 @@ BaseMessage = t.Dict(
 JoinMessageData = t.Dict(
     room_id=t.String,
     client=t.Dict(
-        id=t.String,
+        peer_id=t.String,
         name=t.String,
         email=t.String,
     ),
