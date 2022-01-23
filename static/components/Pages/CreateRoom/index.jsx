@@ -3,8 +3,13 @@ import React, {useState} from "react";
 import css from './style.css';
 import {Input} from "../../styled/Input";
 import {Button} from "../../styled/Btn";
+import {useHistory, useParams} from "react-router";
+import {postRoom} from "../../../api/room";
 
 export const CreateRoom = () => {
+    const {id: roomID} = useParams();
+    const history = useHistory();
+
     const [inputEmail, setInputEmail] = useState('');
     const [inputName, setInputName] = useState('');
 
@@ -12,6 +17,18 @@ export const CreateRoom = () => {
         e.preventDefault();
         console.log(inputEmail);
         console.log(inputName);
+        if(typeof roomID !== "undefined") {
+            history.push(`/room/${roomID}`);
+        } else {
+            postRoom().then((url) => {
+                console.log(url)
+                if (Boolean(url)) {
+                    history.push(`/room/${url}`);
+                }
+            })
+        }
+
+
     };
 
     return (
