@@ -20,7 +20,7 @@ export const App = () => {
         socket.on(ACTION.JOIN, (data) => console.log('On', data));
         // socket.off(ACTION.JOIN);
         socket.onopen(() => socket.send(
-            { action: ACTION.JOIN, data: { peer_id: 1 } }
+            { action: ACTION.JOIN, data: { peer_id: 1, room_id: 1 } }
         ));
     });
 
