@@ -5,25 +5,50 @@ BaseMessage = t.Dict(
     data=t.Any
 )
 
-JoinMessage = t.Dict(
-    peer_id=t.Int,
+# backend allows: START
+JoinMessageData = t.Dict(
+    room_id=t.String,
+    client=t.Dict(
+        id=t.String,
+        name=t.String,
+        email=t.String,
+    ),
 )
 
-AddPeerMessage = t.Dict(
-    peer_id=t.Int,
-    create_offer=t.Bool,
+LeaveMessageData = t.Dict(
+    room_id=t.String,
 )
 
-RemovePeerMessage = t.Dict(
-    peer_id=t.Int,
-)
-
-SessionDescriptionMessage = t.Dict(
+RelaySDPMessageData = t.Dict(
+    room_id=t.String,
     peer_id=t.Int,
     session_description=t.String,
 )
 
-IceCandidateMessage = t.Dict(
+RelayIceMessageData = t.Dict(
+    room_id=t.String,
     peer_id=t.Int,
     ice_candidate=t.String,
 )
+# backend allows: END
+
+# backend respond: START
+AddPeerMessageData = t.Dict(
+    peer_id=t.Int,
+    create_offer=t.Bool,
+)
+
+RemovePeerMessageData = t.Dict(
+    peer_id=t.Int,
+)
+
+SessionDescriptionMessageData = t.Dict(
+    peer_id=t.Int,
+    session_description=t.String,
+)
+
+IceCandidateMessageData = t.Dict(
+    peer_id=t.Int,
+    ice_candidate=t.String,
+)
+# backend respond: END
