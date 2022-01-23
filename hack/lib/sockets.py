@@ -221,14 +221,19 @@ async def remove_from_room(room: Room, client_to_remove: Client) -> None:
         }
     }
     await send_msg(client_to_remove.ws, msg_data)
-    await client_to_remove.ws.close()
+    log.info(f'Client {client_to_remove.peer_id} removed from room {room.id}')
 
 
-async def close_room(app: web.Application, room: Room) -> None:
+async def close_room(app: web.Application, room_id: str) -> None:
+    room = get_room(app, room_id)
+    if not room:
+        return
+
     for client in room.clients:
         await remove_from_room(room, client)
 
     remove_room(app, room.id)
+    log.info(f'Room {room_id} closed')
 
 
 async def relay_sdp_processor(
