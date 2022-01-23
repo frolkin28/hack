@@ -9,6 +9,9 @@ from hack.lib.action import Action
 from hack.lib.message import BaseMessage
 from hack.lib.room import get_room
 from hack.models import Client
+from hack.utils import to_snake_case
+from hack.utils import transform_dict_keys
+from hack.utils import to_camel_case
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +19,8 @@ log = logging.getLogger(__name__)
 async def send_msg(
     ws: web.WebSocketResponse, msg_data: t.Dict[str, t.Any]
 ) -> None:
-    await ws.send_str(json.dumps(msg_data))
+    data = transform_dict_keys(msg_data, to_camel_case)
+    await ws.send_json(data)
 
 
 async def join_processor(
@@ -161,7 +165,10 @@ ACTIONS_PROCESSORS_MAPPING: t.Dict[Action, t.Callable] = {
 async def process_msg(
     app: web.Application, ws: web.WebSocketResponse, msg: WSMessage
 ) -> None:
-    msg_data: BaseMessage = json.loads(msg.data)
+    msg_data: BaseMessage = transform_dict_keys(
+        json.loads(msg.data),
+        to_snake_case
+    )
 
     action = Action(msg_data['action'])
     data = msg_data['data']
