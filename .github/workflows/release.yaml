@@ -19,14 +19,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build image FRONTEND and push to Docker Hub and GitHub Container Registry
-        uses: docker/build-push-action@v2
-        with:
-          context: ./
-          file: ./docker/frontend.dockerfile
-          target: prd
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
+      - name: Build FRONTEND
+      - uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+      - run: npm install
 
       - name: Build image BACKEND and push to Docker Hub and GitHub Container Registry
         uses: docker/build-push-action@v2
