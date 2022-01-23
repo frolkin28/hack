@@ -13,11 +13,10 @@ import {
 
 import css from './style.css';
 import {IconButton} from "../../IconButton";
-import userRtcConnection from "../../../hooks/userRtcConnection";
 import socket from "../../../util/websocket";
 import ACTION from "../../../util/action";
 import {MainContext} from "../../App/context";
-import { IconButton } from "../../IconButton";
+import userRtcConnection from "../../../hooks/useRtcConnection";
 
 export const Room = () => {
     const {id: roomId} = useParams();
@@ -49,8 +48,6 @@ export const Room = () => {
         history.push('/');
     };
 
-    console.log(clients);
-    const videoLayout = layout(clients.length);
 
     useEffect(() => {
         controlMediaStream(isMicrophoneOn, isVideoOn);
@@ -60,7 +57,7 @@ export const Room = () => {
         socket.send({ action: ACTION.LEAVE, data: {roomId} });
         return "Do you really want to close?";
     };
-    console.log(clients);
+
     return (
         <div className={css.body}>
             <div className={css.bodyPeoples}>

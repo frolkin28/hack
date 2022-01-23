@@ -207,7 +207,6 @@ export default function userRtcConnection(roomId) {
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
             socket.send({ action: ACTION.LEAVE, data: {roomId} });
-            console.log(clients)
             clients.remove(function(client) { return client.email === inputEmail; });
         };
     }, [roomId]);
@@ -217,22 +216,19 @@ export default function userRtcConnection(roomId) {
     }, []);
 
     const controlMediaStream = useCallback((microphoneState, videoState) => {
-        console.log(videoState)
         const localStream = localMediaStream.current;
 
         if (microphoneState === MEDIA_STREAM_STATE.ON) {
-            if (localStream && localMediaStream.current.getAudioTracks().lenght) {
+            if (localStream && localMediaStream.current.getAudioTracks().length) {
                 localMediaStream.current.getAudioTracks()[0].enabled = true
             }
         } else if (microphoneState === MEDIA_STREAM_STATE.OFF) {
-            if (localStream && localMediaStream.current.getAudioTracks().lenght) {
+            if (localStream && localMediaStream.current.getAudioTracks().length) {
                 localMediaStream.current.getAudioTracks()[0].enabled = false
             }
         }
 
         if (videoState === MEDIA_STREAM_STATE.ON) {
-            console.log('video on ');
-            console.log('cur', localMediaStream.current)
             if (
                 localMediaStream.current &&
                 localMediaStream.current.getVideoTracks().length > 0
@@ -242,13 +238,11 @@ export default function userRtcConnection(roomId) {
                 console.log(localMediaStream.current.getVideoTracks())
             }
         } else if (videoState === MEDIA_STREAM_STATE.OFF) {
-            console.log('video off ');
             console.log(localMediaStream.current.getVideoTracks());
             if (
                 localMediaStream.current &&
                 localMediaStream.current.getVideoTracks().length > 0
             ) {
-                console.log('mute')
                 localMediaStream.current.getVideoTracks()[0].enabled = false
                 console.log(localMediaStream.current.getVideoTracks())
             }
