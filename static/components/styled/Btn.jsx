@@ -14,4 +14,9 @@ export const Button = styled("button")`
   font-weight: 1500;
   border-radius: 10px;
   border: thick double #ff7b73;
+  
+  &:disabled {
+    background-color: #cccccc;
+    color: #666666;
+  };
 `;

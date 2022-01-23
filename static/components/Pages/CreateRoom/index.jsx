@@ -11,10 +11,17 @@ import {Link} from "react-router-dom";
 export const CreateRoom = () => {
     const {id: roomId} = useParams();
     const history = useHistory();
+    const [errors, setErrors] = useState('')
 
     const {email: [inputEmail, setInputEmail]} = useContext(MainContext);
     const {name: [inputName, setInputName]} = useContext(MainContext);
     const {organizer: [, setIsOrganizer]} = useContext(MainContext);
+
+    const HandleInputEmail = (value) => {
+        setInputEmail(value);
+        // const emailValid = value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i);
+        // setErrors(emailValid ? '' : 'Invalid email.');
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -39,7 +46,7 @@ export const CreateRoom = () => {
                     placeholder='Email'
                     value={inputEmail}
                     type="email"
-                    onChange={event => setInputEmail(event.target.value)}
+                    onChange={event => HandleInputEmail(event.target.value)}
                 />
                 <Input
                     placeholder='Name'
@@ -49,7 +56,8 @@ export const CreateRoom = () => {
                     onChange={event => setInputName(event.target.value)}
                 />
             </div>
-            <Button onClick={handleSubmit}>Go</Button>
+            <p className={css.error}>{errors}</p>
+            <Button onClick={handleSubmit} disabled={Boolean(errors)}>Go</Button>
         </div>
     )
 

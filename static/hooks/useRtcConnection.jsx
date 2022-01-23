@@ -19,18 +19,18 @@ export default function userRtcConnection(roomId) {
     const {email: [inputEmail]} = useContext(MainContext);
     const {name: [inputName]} = useContext(MainContext);
     const {organizer: [isOrganizer]} = useContext(MainContext);
+    const {clients: [clients, setClients]} = useContext(MainContext);
 
-    const [clients, updateClients] = useStateWithCallback([]);
 
     const addNewClient = useCallback((newClient, cb) => {
-        updateClients(list => {
+        setClients(list => {
             if (!list.includes(newClient)) {
                 return [...list, newClient]
             }
 
             return list;
         }, cb);
-    }, [clients, updateClients]);
+    }, [clients, setClients]);
 
     const peerConnections = useRef({});
     const localMediaStream = useRef(null);
@@ -165,7 +165,7 @@ export default function userRtcConnection(roomId) {
             delete peerConnections.current[peerId];
             delete peerMediaElements.current[peerId];
 
-            updateClients(list => list.filter(el => el !== peerId));
+            setClients(list => list.filter(el => el !== peerId));
         };
 
         socket.on(ACTION.REMOVE_PEER, handleRemovePeer);
@@ -207,7 +207,7 @@ export default function userRtcConnection(roomId) {
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
             socket.send({ action: ACTION.LEAVE, data: {roomId} });
-            clients.remove(function(client) { return client.email === inputEmail; });
+            setClients(list => list.filter(el => el !== inputEmail));
         };
     }, [roomId]);
 
@@ -246,8 +246,6 @@ export default function userRtcConnection(roomId) {
     });
 
     return {
-        clients,
-        updateClients,
         provideMediaRef,
         controlMediaStream,
     };
