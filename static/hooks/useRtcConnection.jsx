@@ -9,6 +9,11 @@ import socket from '../util/websocket';
 import ACTION from '../util/action';
 import {MainContext} from "../components/App/context";
 
+export const MEDIA_STREAM_STATE = {
+    ON: true,
+    OFF: false,
+}
+
 
 export default function userRtcConnection(roomId) {
     const {email: [inputEmail]} = useContext(MainContext);
@@ -91,6 +96,7 @@ export default function userRtcConnection(roomId) {
                 const offer = await peerConnections.current[peerId].createOffer();
 
                 await peerConnections.current[peerId].setLocalDescription(offer);
+
                 socket.send({
                     action: ACTION.RELAY_SDP,
                     data: {
@@ -201,7 +207,6 @@ export default function userRtcConnection(roomId) {
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
             socket.send({ action: ACTION.LEAVE, data: {roomId} });
-            console.log(clients)
             clients.remove(function(client) { return client.email === inputEmail; });
         };
     }, [roomId]);
@@ -210,9 +215,44 @@ export default function userRtcConnection(roomId) {
         peerMediaElements.current[id] = node;
     }, []);
 
+    const controlMediaStream = useCallback((microphoneState, videoState) => {
+        const localStream = localMediaStream.current;
+
+        if (microphoneState === MEDIA_STREAM_STATE.ON) {
+            if (localStream && localMediaStream.current.getAudioTracks().length) {
+                localMediaStream.current.getAudioTracks()[0].enabled = true
+            }
+        } else if (microphoneState === MEDIA_STREAM_STATE.OFF) {
+            if (localStream && localMediaStream.current.getAudioTracks().length) {
+                localMediaStream.current.getAudioTracks()[0].enabled = false
+            }
+        }
+
+        if (videoState === MEDIA_STREAM_STATE.ON) {
+            if (
+                localMediaStream.current &&
+                localMediaStream.current.getVideoTracks().length > 0
+            ) {
+                console.log('unmute')
+                localMediaStream.current.getVideoTracks()[0].enabled = true
+                console.log(localMediaStream.current.getVideoTracks())
+            }
+        } else if (videoState === MEDIA_STREAM_STATE.OFF) {
+            console.log(localMediaStream.current.getVideoTracks());
+            if (
+                localMediaStream.current &&
+                localMediaStream.current.getVideoTracks().length > 0
+            ) {
+                localMediaStream.current.getVideoTracks()[0].enabled = false
+                console.log(localMediaStream.current.getVideoTracks())
+            }
+        }
+    });
+
     return {
         clients,
         updateClients,
-        provideMediaRef
+        provideMediaRef,
+        controlMediaStream,
     };
 }

@@ -1,6 +1,7 @@
 import * as React from "react";
-import {useContext, useEffect, useRef, useState} from "react";
-import {useParams} from "react-router";
+import {useContext, useEffect, useState} from "react";
+import {Redirect} from "react-router-dom";
+import {useHistory, useParams} from "react-router";
 import {
     faMicrophone,
     faMicrophoneSlash,
@@ -12,12 +13,10 @@ import {
 
 import css from './style.css';
 import {IconButton} from "../../IconButton";
-import userRtcConnection from "../../../hooks/userRtcConnection";
 import socket from "../../../util/websocket";
 import ACTION from "../../../util/action";
 import {MainContext} from "../../App/context";
-import {Redirect} from "react-router-dom";
-
+import userRtcConnection from "../../../hooks/useRtcConnection";
 
 export const Room = () => {
     const {id: roomId} = useParams();
@@ -29,17 +28,36 @@ export const Room = () => {
         return <Redirect to={`/join/${roomId}`} />
     }
 
-    const {clients, provideMediaRef} = userRtcConnection(roomId);
+    const {clients, provideMediaRef, controlMediaStream} = userRtcConnection(roomId);
 
-    const stopVideo = () => {
-        console.log('stop');
-    }
+    const history = useHistory();
+    const [isMicrophoneOn, setIsMicrophoneOn] = useState(true);
+    const [isVideoOn, setIsVideoOn] = useState(true);
+
+    const handleMicrophoneClick = () => {
+        setIsMicrophoneOn(!isMicrophoneOn);
+        controlMediaStream(isMicrophoneOn, isVideoOn);
+    };
+
+    const handleVideoClick = () => {
+        setIsVideoOn(!isVideoOn);
+        controlMediaStream(isMicrophoneOn, isVideoOn);
+    };
+
+    const handleLeaveRoom = () => {
+        history.push('/');
+    };
+
+
+    useEffect(() => {
+        controlMediaStream(isMicrophoneOn, isVideoOn);
+    }, [isMicrophoneOn, isVideoOn]);
 
     window.onbeforeunload = function () {
         socket.send({ action: ACTION.LEAVE, data: {roomId} });
         return "Do you really want to close?";
     };
-    console.log(clients);
+
     return (
         <div className={css.body}>
             <div className={css.bodyPeoples}>
@@ -75,15 +93,21 @@ export const Room = () => {
             </div>
 
             <div className={css.footer}>
-                {true
-                    ? <IconButton icon={faMicrophone} />
-                    : <IconButton icon={faMicrophoneSlash} />
-                }
-                {true
-                    ? <IconButton icon={faVideo} onClick={stopVideo}/>
-                    : <IconButton icon={faVideoSlash} />
-                }
-                <IconButton icon={faPhoneSlash}/>
+                <div>
+                    {isMicrophoneOn
+                        ? <IconButton icon={faMicrophone} onClick={handleMicrophoneClick} />
+                        : <IconButton icon={faMicrophoneSlash} onClick={handleMicrophoneClick} />
+                    }
+                </div>
+                <div>
+                    {isVideoOn
+                        ? <IconButton icon={faVideo} onClick={handleVideoClick} />
+                        : <IconButton icon={faVideoSlash} onClick={handleVideoClick} />
+                    }
+                </div>
+                <div>
+                    <IconButton icon={faPhoneSlash} onClick={handleLeaveRoom} />
+                </div>
             </div>
         </div>
     );
