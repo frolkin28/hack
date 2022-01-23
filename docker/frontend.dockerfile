@@ -11,7 +11,6 @@ RUN npm install --loglevel=error
 FROM dev AS stg
 
 COPY .babelrc /app
-COPY tsconfig.frontend.json /app
 COPY webpack /app/webpack
 COPY static /app/static
 
