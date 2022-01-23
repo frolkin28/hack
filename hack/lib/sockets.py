@@ -18,7 +18,7 @@ from hack.lib.message import (
     RelayIceMessageData,
     IceCandidateMessageData,
     SessionDescriptionMessageData,
-    DeleteClientMessageData,
+    DeleteClientMessageData, ClientDeletedMessageData,
 )
 from hack.lib.room import get_room, log_room, remove_room
 from hack.models import Client, Room
@@ -39,7 +39,7 @@ ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
     Action.ICE_CANDIDATE: IceCandidateMessageData,
     Action.SESSION_DESCRIPTION: SessionDescriptionMessageData,
     Action.DELETE_CLIENT: DeleteClientMessageData,
-    Action.CLIENT_DELETED: None,
+    Action.CLIENT_DELETED: ClientDeletedMessageData,
 }
 
 
@@ -214,9 +214,10 @@ async def remove_from_room(room: Room, client_to_remove: Client) -> None:
     room.remove_client(client_to_remove.peer_id)
 
     msg_data = {
-        'action': Action.CLIENT_DELETED.value,
+        'action': Action.CLIENT_DELETED,
         'data': {
-            'peer_id': client.peer_id,
+            'room_id': room.id,
+            'peer_id': client_to_remove.peer_id,
         }
     }
     await send_msg(client_to_remove.ws, msg_data)

@@ -62,4 +62,9 @@ IceCandidateMessageData = t.Dict(
     peer_id=t.String,
     ice_candidate=t.Any,
 )
+
+ClientDeletedMessageData = t.Dict(
+    room_id=t.String,
+    peer_id=t.String,
+)
 # backend respond: END
