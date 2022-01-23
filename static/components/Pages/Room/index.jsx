@@ -62,7 +62,12 @@ export const Room = () => {
 
             <div className={css.bodyPeoples}>
                 {clients.map((clientID, index) => (
-                    <div className={css.person} key={clientID} id={clientID}>
+                    <div
+                        className={css.person}
+                        style={videoLayout[index]}
+                        key={clientID}
+                        id={clientID}
+                    >
                         <video
                             width='100%'
                             height='100%'
