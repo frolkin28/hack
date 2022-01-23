@@ -11,7 +11,6 @@ const useStateWithCallback = (initialState) => {
 
     const updateState = useCallback((newState, callBack) => {
         callBackRef.current = callBack;
-
         setState(prev => typeof newState === 'function' ? newState(prev) : newState);
     }, []);
 

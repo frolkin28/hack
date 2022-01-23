@@ -23,16 +23,16 @@ export const Room = () => {
     const {email: [inputEmail]} = useContext(MainContext);
     const {name: [inputName]} = useContext(MainContext);
     const {organizer: [isOrganizer]} = useContext(MainContext);
+    const [isMicrophoneOn, setIsMicrophoneOn] = useState(true);
+    const [isVideoOn, setIsVideoOn] = useState(true);
 
     if (!Boolean(inputEmail) && !Boolean(inputName)) {
         return <Redirect to={`/join/${roomId}`} />
     }
 
-    const {clients, provideMediaRef, controlMediaStream} = userRtcConnection(roomId);
+    const {clients, updateClients, provideMediaRef, controlMediaStream} = userRtcConnection(roomId);
 
     const history = useHistory();
-    const [isMicrophoneOn, setIsMicrophoneOn] = useState(true);
-    const [isVideoOn, setIsVideoOn] = useState(true);
 
     const handleMicrophoneClick = () => {
         setIsMicrophoneOn(!isMicrophoneOn);
@@ -48,6 +48,12 @@ export const Room = () => {
         history.push('/');
     };
 
+    const handleDeleteClient = (peerId) => {
+        socket.send({ action: ACTION.DELETE_CLIENT, data: {roomId, peerId} });
+        console.log(clients);
+        updateClients(list => list.filter(el => el !== peerId));
+        console.log(clients);
+    }
 
     useEffect(() => {
         controlMediaStream(isMicrophoneOn, isVideoOn);
@@ -69,10 +75,11 @@ export const Room = () => {
                     >
                         <video
                             width='100%'
-                            height='100%'
+                            height='auto'
                             ref={instance => {
                                 provideMediaRef(client.peerId, instance);
                             }}
+                            className={css.personVideo}
                             autoPlay
                             muted={client.email === inputEmail}
                         />
@@ -86,7 +93,13 @@ export const Room = () => {
                     {clients.map((client) => (
                         <li className={css.name} key={client.peerId} >
                             {client.name.slice(0, 8)}
-                            {isOrganizer ? <IconButton icon={faMinus} small /> : null}
+                            {isOrganizer && client.email !== inputEmail
+                                ? <IconButton
+                                    icon={faMinus}
+                                    small
+                                    onClick={() => handleDeleteClient(client.peerId)}
+                                />
+                                : null}
                         </li>
                     ))}
                 </ul>
