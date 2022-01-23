@@ -13,6 +13,7 @@ import {MainContext} from "../components/App/context";
 export default function userRtcConnection(roomId) {
     const {email: [inputEmail]} = useContext(MainContext);
     const {name: [inputName]} = useContext(MainContext);
+    const {organizer: [isOrganizer]} = useContext(MainContext);
 
     const [clients, updateClients] = useStateWithCallback([]);
 
@@ -90,7 +91,6 @@ export default function userRtcConnection(roomId) {
                 const offer = await peerConnections.current[peerId].createOffer();
 
                 await peerConnections.current[peerId].setLocalDescription(offer);
-                console.log(peerId)
                 socket.send({
                     action: ACTION.RELAY_SDP,
                     data: {
@@ -193,18 +193,16 @@ export default function userRtcConnection(roomId) {
             .then(() => socket.send({
                 action: ACTION.JOIN,
                 data: { roomId, client: {
-                        'peerId': inputEmail, 'name': inputName, 'email': inputEmail
+                        'peerId': inputEmail, 'name': inputName, 'email': inputEmail, isOrganizer: isOrganizer
                     }}
             }))
             .catch(e => console.error('Error getting userMedia:', e));
 
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
-
             socket.send({ action: ACTION.LEAVE, data: {roomId} });
-            const clientsCopy = clients.filter(client => client.email !== inputEmail);
-            console.log(clientsCopy);
-            updateClients(clientsCopy)
+            console.log(clients)
+            clients.remove(function(client) { return client.email === inputEmail; });
         };
     }, [roomId]);
 
@@ -214,6 +212,7 @@ export default function userRtcConnection(roomId) {
 
     return {
         clients,
+        updateClients,
         provideMediaRef
     };
 }

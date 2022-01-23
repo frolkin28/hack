@@ -39,11 +39,16 @@
 }
 
 .person {
-    min-height: 17em;
     min-width: 22em;
     margin: 10px;
     background-color: black;
+    text-align: center;
     border-radius: 10%;
+}
+
+.personVideo {
+    border-top-left-radius: 10%;
+    border-top-right-radius: 10%;
 }
 
 .name {

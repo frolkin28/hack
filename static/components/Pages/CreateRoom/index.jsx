@@ -13,14 +13,17 @@ export const CreateRoom = () => {
 
     const {email: [inputEmail, setInputEmail]} = useContext(MainContext);
     const {name: [inputName, setInputName]} = useContext(MainContext);
+    const {organizer: [, setIsOrganizer]} = useContext(MainContext);
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if(typeof roomId !== "undefined") {
+            setIsOrganizer(false);
             history.push(`/room/${roomId}`);
         } else {
             postRoom().then((url) => {
                 if (Boolean(url)) {
+                    setIsOrganizer(true);
                     history.push(`/room/${url}`);
                 }
             })

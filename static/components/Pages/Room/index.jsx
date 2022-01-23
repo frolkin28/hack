@@ -23,6 +23,7 @@ export const Room = () => {
     const {id: roomId} = useParams();
     const {email: [inputEmail]} = useContext(MainContext);
     const {name: [inputName]} = useContext(MainContext);
+    const {organizer: [isOrganizer]} = useContext(MainContext);
 
     if (!Boolean(inputEmail) && !Boolean(inputName)) {
         return <Redirect to={`/join/${roomId}`} />
@@ -38,9 +39,7 @@ export const Room = () => {
         socket.send({ action: ACTION.LEAVE, data: {roomId} });
         return "Do you really want to close?";
     };
-
-
-
+    console.log(clients);
     return (
         <div className={css.body}>
             <div className={css.bodyPeoples}>
@@ -67,9 +66,9 @@ export const Room = () => {
             <div className={css.listPeoples}>
                 <ul className={css.border}>
                     {clients.map((client) => (
-                        <li className={css.name}>
+                        <li className={css.name} key={client.peerId} >
                             {client.name.slice(0, 8)}
-                            <IconButton icon={faMinus} small />
+                            {isOrganizer ? <IconButton icon={faMinus} small /> : null}
                         </li>
                     ))}
                 </ul>
