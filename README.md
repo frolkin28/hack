@@ -10,8 +10,8 @@ Every person can control stream data (microphone and camera).
 ### Fast setting
 If you want to launch locally, do next steps:
 1. Download docker and docker-compose
-2. For the first launch need build frontend: ```docker-compose up --build frontend```
-3. Start app: ```docker-compose up backend```
+2. For the first launch need build frontend: ```make build```
+3. Start app: ```make run```
 3. Go to: http://localhost:8080
 
 ### Launch Tests
