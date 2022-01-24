@@ -4,7 +4,10 @@ import ACTION from '../util/action';
 
 class WebSocketWrapper {
     constructor(url) {
-        this.socket = new ReconnectingWebSocket(url);
+        this.socket = new ReconnectingWebSocket(url, [],{
+            minReconnectionDelay: 500 + Math.random() * 2000,
+            debug: true,
+        });
         this.actionMap = {}
 
         this.socket.onmessage = (event) => {
@@ -55,11 +58,13 @@ export const createSocket = (peerId, roomId) => {
         return socket;
     }
 
-    try {
-        socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
-    } catch {
-        socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
-    }
+    // try {
+    //     socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
+    // } catch {
+    //     socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
+    // }
+    socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
+
     socket.socket.onopen = () => {
         console.log('LOG: Socket opened');
         socket.socket.send(JSON.stringify({
