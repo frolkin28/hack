@@ -43,7 +43,11 @@ async def websocket_handler(request):
             data_for_log['data']['sessionDescription'] = {
                 'sessionDescription': 'hidden'
             }
-        log.debug(f'\n\n{"#" * 50}\n receive msg {data_for_log} \n{"#" * 50}\n')
+        log.debug(
+            f'\n\n{"#" * 50}\n '
+            f'receive msg from ws {id(ws)} {data_for_log} '
+            f'\n{"#" * 50}\n'
+        )
 
         if msg.type == aiohttp.WSMsgType.TEXT:
             if msg.data == 'close':
