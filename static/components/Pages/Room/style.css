@@ -35,11 +35,18 @@
     display: flex;
     width: 78%;
     align-items: center;
-    justify-content: center;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    flex-direction: row;
 }
 
+.bodyPeoples>* {
+    flex: 1 1 100px;
+}
+
+
 .person {
-    min-width: 22em;
+    min-width: 15em;
     margin: 10px;
     background-color: black;
     text-align: center;

@@ -14,8 +14,6 @@ import { NotFoundStreamPage } from "../Pages/NotFoundStreamPage";
 
 
 export const App = () => {
-    console.log('Version 5');
-
     return (
         <div className="App">
             <Switch path={''} history={history}>

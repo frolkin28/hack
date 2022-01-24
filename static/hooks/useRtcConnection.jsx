@@ -49,9 +49,7 @@ export default function userRtcConnection(roomId, socket) {
             peerConnections.current[peerId] = new RTCPeerConnection({
                 iceServers: freeice(),
             });
-            console.log(peerConnections)
             peerConnections.current[peerId].onicecandidate = event => {
-                console.log(event)
                 if (event.candidate) {
                     socket.send({
                         action: ACTION.RELAY_ICE,
