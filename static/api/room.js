@@ -26,8 +26,6 @@ export const getRoom = (roomId) =>
             return data.organizerEmail;
         })
         .catch((err) => {
-            console.log(err)
-            console.log(err.status)
             console.log(`Error get organizer room: ${err}`);
             return ''
         });
@@ -44,7 +42,6 @@ export const getRooms = () =>
             return data.map(data => data.roomId);
         })
         .catch((err) => {
-            console.log(err)
             console.log(`Error get organizer room: ${err}`);
             return ''
         });

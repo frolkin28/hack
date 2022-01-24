@@ -2,6 +2,7 @@ import json
 import logging
 
 import typing as t
+from copy import deepcopy
 
 from aiohttp import web, WSMessage
 from trafaret import DataError, Trafaret
@@ -75,7 +76,14 @@ async def send_msg(
         return
 
     msg_data['data'] = transform_dict_keys(msg_data['data'], to_camel_case)
-    log.debug(f'send_msg data {msg_data}')
+
+    data_for_log = deepcopy(msg_data)
+    if data_for_log['data'].get('sessionDescription'):
+        data_for_log['data']['sessionDescription'] = {
+            'sessionDescription': 'hidden'
+        }
+    log.debug(f'send_msg to ws: {id(ws)} data {data_for_log} ')
+
     try:
         await ws.send_json(msg_data)
     except Exception as e:
@@ -97,8 +105,15 @@ async def reconnect_processor(
         log.warning(f'Client {peer_id} not found in room {room_id}')
         return
 
+    old_client_ws_id = id(client_to_reconnect.ws)
     room.set_socket_for_client(
         ws=ws, client_peer_id=client_to_reconnect.peer_id,
+    )
+    new_client_ws_id = id(client_to_reconnect.ws)
+
+    log.info(
+        f'Changed client {peer_id} ws from {old_client_ws_id} '
+        f'to {new_client_ws_id}'
     )
 
     log_room(room)
