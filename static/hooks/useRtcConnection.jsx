@@ -47,13 +47,7 @@ export default function userRtcConnection(roomId, socket) {
             }
 
             peerConnections.current[peerId] = new RTCPeerConnection({
-                iceServers: [
-                    'stun.l.google.com:19302',
-                    'stun1.l.google.com:19302',
-                    'stun2.l.google.com:19302',
-                    'stun3.l.google.com:19302',
-                    'stun4.l.google.com:19302'
-                ],
+                iceServers:[{"urls":"stun:stun.l.google.com:19302"}]
             });
             peerConnections.current[peerId].onicecandidate = event => {
                 console.log(event)
