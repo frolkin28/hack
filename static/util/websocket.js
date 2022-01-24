@@ -1,3 +1,6 @@
+import ACTION from '../util/action';
+
+
 class WebSocketWrapper {
     constructor(url) {
         this.socket = new WebSocket(url);
@@ -11,6 +14,7 @@ class WebSocketWrapper {
         };
 
         this.onopen = this.onopen.bind(this);
+        this.onclose = this.onclose.bind(this);
         this.onerror = this.onerror.bind(this);
         this.send = this.send.bind(this);
         this.on = this.on.bind(this);
@@ -19,6 +23,10 @@ class WebSocketWrapper {
 
     onopen(callBack) {
         this.socket.onopen = callBack;
+    }
+
+    onclose(callBack) {
+        this.socket.onclose = callBack;
     }
 
     onerror(callBack) {
@@ -38,15 +46,44 @@ class WebSocketWrapper {
     }
 }
 
-let socket;
 
-try {
-    socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
-} catch {
-    socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
+export const reconnectSocket = (peerId, roomId) => {
+    console.log('LOG: Socket closed, reconnecting ...');
+    const socket = createSocket();
+    socket.onopen = () => {
+        socket.send({
+            action: ACTION.RECONNECT,
+            data: {
+                peerId,
+                roomId
+            }
+        });
+    }
 }
 
-socket.socket.onopen = () => console.log('== Socket opened');
-socket.socket.onclose = () => console.log('== Socket closed');
 
-export default socket;
+export const createSocket = (peerId, roomId) => {
+    let socket = getExistingSocket();
+    if (socket) {
+        return socket;
+    }
+
+    try {
+        socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
+    } catch {
+        socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
+    }
+    socket.onopen = () => console.log('LOG: Socket opened');
+    socket.onclose = (peerId, roomId) => reconnectSocket(peerId, roomId);
+    window.socket = socket;
+    return socket;
+}
+
+
+export const getExistingSocket = () => {
+    if (window.socket) {
+        return window.socket;
+    }
+    console.log('LOG: No socket presents');
+    return null;
+}
