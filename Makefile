@@ -24,6 +24,10 @@ run:
 stop:
 	@docker-compose down
 
+deploy:
+	@docker build -t deploy -f docker/deploy.dockerfile .
+	@docker run --name=chebureck -p 8080:8080 deploy
+
 ## Show help.
 help:
 	@echo ''
