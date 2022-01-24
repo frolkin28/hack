@@ -41,4 +41,7 @@ class WebSocketWrapper {
 
 const socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
 
+socket.socket.onopen = () => console.log('== Socket opened');
+socket.socket.onclose = () => console.log('== Socket closed');
+
 export default socket;
