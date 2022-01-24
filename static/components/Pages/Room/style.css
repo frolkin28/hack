@@ -36,10 +36,14 @@
     width: 78%;
     align-items: center;
     flex-wrap: wrap;
-    flex: 1 1 100px;
     justify-content: flex-start;
     flex-direction: row;
 }
+
+.bodyPeoples>* {
+    flex: 1 1 100px;
+}
+
 
 .person {
     min-width: 22em;
