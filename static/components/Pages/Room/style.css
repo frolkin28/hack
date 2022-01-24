@@ -35,7 +35,10 @@
     display: flex;
     width: 78%;
     align-items: center;
-    justify-content: center;
+    flex-wrap: wrap;
+    flex: 1 1 100px;
+    justify-content: flex-start;
+    flex-direction: row;
 }
 
 .person {

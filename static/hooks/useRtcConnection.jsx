@@ -47,9 +47,14 @@ export default function userRtcConnection(roomId, socket) {
             }
 
             peerConnections.current[peerId] = new RTCPeerConnection({
-                iceServers: freeice(),
+                iceServers: [
+                    'stun.l.google.com:19302',
+                    'stun1.l.google.com:19302',
+                    'stun2.l.google.com:19302',
+                    'stun3.l.google.com:19302',
+                    'stun4.l.google.com:19302'
+                ],
             });
-            console.log(peerConnections)
             peerConnections.current[peerId].onicecandidate = event => {
                 console.log(event)
                 if (event.candidate) {
