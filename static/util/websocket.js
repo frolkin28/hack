@@ -63,7 +63,7 @@ export const createSocket = (peerId, roomId) => {
     // } catch {
     //     socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
     // }
-    socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
+    socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
 
     socket.socket.onopen = () => {
         console.log('LOG: Socket opened');
