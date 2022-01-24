@@ -303,11 +303,11 @@ async def remove_from_room(
             'peer_id': client_to_remove.peer_id,
         }
     }
-    await send_msg_to_client_in_room(
-        app=app, room_id=room.id, client_peer_id=client_to_remove.peer_id,
-        msg_data=msg_data
-    )
-    # await send_msg(client_to_remove.ws, msg_data)
+    # await send_msg_to_client_in_room(
+    #     app=app, room_id=room.id, client_peer_id=client_to_remove.peer_id,
+    #     msg_data=msg_data
+    # )
+    await send_msg(client_to_remove.ws, msg_data)
     log.info(f'Client {client_to_remove.peer_id} removed from room {room.id}')
 
 
