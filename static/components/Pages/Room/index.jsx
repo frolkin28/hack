@@ -38,7 +38,6 @@ export const Room = () => {
         return <Redirect to={`/join/${roomId}`} />
     }
 
-
     const { provideMediaRef, controlMediaStream } = userRtcConnection(roomId, socket);
 
     const history = useHistory();
@@ -64,7 +63,6 @@ export const Room = () => {
     }
 
     useEffect(() => {
-        console.log(roomId)
         getRoom(roomId).then((email) => {
             if (email === inputEmail) {
                 setIsOrganizer(true);
