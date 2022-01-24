@@ -17,6 +17,8 @@ import { Room } from "../Pages/Room";
 
 export const App = () => {
 
+    console.log('Version 1');
+
     return (
         <div className="App">
             {/*<Link to="/room">ROOM</Link>*/}
