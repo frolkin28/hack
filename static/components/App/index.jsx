@@ -1,24 +1,20 @@
 import React from 'react';
-import { useEffect } from 'react';
 import {
     Route,
     Switch,
     Redirect,
     withRouter,
-    Link,
 } from "react-router-dom";
 
 import css from './style.css';
 import { NotFoundPage } from "../Pages/NotFoundPage";
 import { CreateRoom } from "../Pages/CreateRoom";
 import { Room } from "../Pages/Room";
-import {NotFoundStreamPage} from "../Pages/NotFoundStreamPage";
-
+import { NotFoundStreamPage } from "../Pages/NotFoundStreamPage";
 
 
 export const App = () => {
-
-    console.log('Version 4');
+    console.log('Version 5');
 
     return (
         <div className="App">

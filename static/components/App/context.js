@@ -1,9 +1,9 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import useStateWithCallback from "../../hooks/useStateWithCallback";
 
 export const MainContext = React.createContext(null);
 
-export const ContextProvider = ({children}) => {
+export const ContextProvider = ({ children }) => {
     const [inputEmail, setInputEmail] = useState('');
     const [inputName, setInputName] = useState('');
     const [isOrganizer, setIsOrganizer] = useState(false);
@@ -13,7 +13,8 @@ export const ContextProvider = ({children}) => {
         email: [inputEmail, setInputEmail],
         name: [inputName, setInputName],
         organizer: [isOrganizer, setIsOrganizer],
-        clients: [clients, setClients]
+        clients: [clients, setClients],
+        socket: [],
     }
 
     return (

@@ -12,3 +12,4 @@ class Action(Enum):
     SESSION_DESCRIPTION = 'session-description'
     DELETE_CLIENT = 'delete-client'
     CLIENT_DELETED = 'client-deleted'
+    RECONNECT = 'reconnect'

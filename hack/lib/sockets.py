@@ -18,7 +18,9 @@ from hack.lib.message import (
     RelayIceMessageData,
     IceCandidateMessageData,
     SessionDescriptionMessageData,
-    DeleteClientMessageData, ClientDeletedMessageData,
+    DeleteClientMessageData,
+    ClientDeletedMessageData,
+    ReconnectMessageData,
 )
 from hack.lib.room import get_room, log_room, remove_room
 from hack.models import Client, Room
@@ -40,6 +42,7 @@ ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
     Action.SESSION_DESCRIPTION: SessionDescriptionMessageData,
     Action.DELETE_CLIENT: DeleteClientMessageData,
     Action.CLIENT_DELETED: ClientDeletedMessageData,
+    Action.RECONNECT: ReconnectMessageData,
 }
 
 
@@ -77,6 +80,28 @@ async def send_msg(
         await ws.send_json(msg_data)
     except Exception as e:
         log.error(f'Eror while send_msg {msg_data} {str(e)}')
+
+
+async def reconnect_processor(
+    app: web.Application, ws: web.WebSocketResponse, data: t.Dict[str, t.Any]
+) -> None:
+    room_id = data['room_id']
+    room = get_room(app, room_id)
+    if not room:
+        log.warning(f'Room not found {room_id}')
+        return
+
+    peer_id = data['peer_id']
+    client_to_reconnect = room.get_client_by_peer_id(peer_id)
+    if not client_to_reconnect:
+        log.warning(f'Client {peer_id} not found in room {room_id}')
+        return
+
+    room.set_socket_for_client(
+        ws=ws, client_peer_id=client_to_reconnect.peer_id,
+    )
+
+    log_room(room)
 
 
 async def join_processor(
@@ -297,6 +322,7 @@ ACTIONS_PROCESSORS_MAPPING: t.Dict[Action, t.Callable] = {
     Action.DELETE_CLIENT: delete_client_processor,
     Action.RELAY_SDP: relay_sdp_processor,
     Action.RELAY_ICE: relay_ice_processor,
+    Action.RECONNECT: reconnect_processor,
 }
 
 

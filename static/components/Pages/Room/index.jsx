@@ -19,8 +19,8 @@ import { IconButton } from "../../IconButton";
 import ACTION from "../../../util/action";
 import { MainContext } from "../../App/context";
 import userRtcConnection from "../../../hooks/useRtcConnection";
-import socket from "../../../util/websocket";
-import {getRoom} from "../../../api/room";
+import { createSocket } from "../../../util/websocket";
+import { getRoom } from "../../../api/room";
 
 const ReactHint = ReactHintFactory(React);
 
@@ -37,6 +37,8 @@ export const Room = () => {
     if (!Boolean(inputEmail) && !Boolean(inputName)) {
         return <Redirect to={`/join/${roomId}`} />
     }
+
+    const socket = createSocket(inputEmail, roomId);
 
     const { provideMediaRef, controlMediaStream } = userRtcConnection(roomId, socket);
 
@@ -68,7 +70,7 @@ export const Room = () => {
                 setIsOrganizer(true);
             }
         })
-        }, [roomId]
+    }, [roomId]
     )
 
     useEffect(() => {
