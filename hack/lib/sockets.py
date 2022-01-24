@@ -48,7 +48,7 @@ ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
     Action.RECONNECT: ReconnectMessageData,
 }
 
-STOP_RETRY_ATTEMPTS = stop_after_attempt(3)
+STOP_RETRY_ATTEMPTS = stop_after_attempt(5)
 # WAIT_PERIOD = wait_exponential(multiplier=1, min=4, max=10)
 WAIT_PERIOD = wait_fixed(0.2)
 
