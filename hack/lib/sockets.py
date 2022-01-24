@@ -5,9 +5,11 @@ import typing as t
 from copy import deepcopy
 
 from aiohttp import web, WSMessage
+from pip._vendor.tenacity import wait_fixed
 from trafaret import DataError, Trafaret
+from tenacity import retry, stop_after_attempt, wait_exponential
 
-from hack.exceptions import ValidateActionDataException
+from hack.exceptions import ValidateActionDataException, SendMessageException
 from hack.lib.action import Action
 from hack.lib.message import (
     BaseMessage,
@@ -46,6 +48,10 @@ ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
     Action.RECONNECT: ReconnectMessageData,
 }
 
+STOP_RETRY_ATTEMPTS = stop_after_attempt(3)
+# WAIT_PERIOD = wait_exponential(multiplier=1, min=4, max=10)
+WAIT_PERIOD = wait_fixed(0.2)
+
 
 def validate_action_data(action: Action, data: t.Dict[str, t.Any]):
     trafaret_schema = ACTION_MESSAGE_TRAFARETS_MAPPING[action]
@@ -57,6 +63,17 @@ def validate_action_data(action: Action, data: t.Dict[str, t.Any]):
         raise ValidateActionDataException(
             f'Data for action: {action.value} not valid, data {data}, err {e}'
         )
+
+
+@retry(stop=STOP_RETRY_ATTEMPTS, wait=WAIT_PERIOD)
+async def send_msg_to_client_in_room(
+    app: web.Application, room_id: str,
+    client_peer_id: str, msg_data: t.Dict[str, t.Any]
+) -> None:
+    room = get_room(app, room_id)
+    client = room.get_client_by_peer_id(client_peer_id)
+
+    await send_msg(client.ws, msg_data)
 
 
 async def send_msg(
@@ -75,9 +92,12 @@ async def send_msg(
         log.warning(e)
         return
 
-    msg_data['data'] = transform_dict_keys(msg_data['data'], to_camel_case)
+    msg_data_to_send = deepcopy(msg_data)
+    msg_data_to_send['data'] = transform_dict_keys(
+        msg_data_to_send['data'], to_camel_case
+    )
 
-    data_for_log = deepcopy(msg_data)
+    data_for_log = deepcopy(msg_data_to_send)
     if data_for_log['data'].get('sessionDescription'):
         data_for_log['data']['sessionDescription'] = {
             'sessionDescription': 'hidden'
@@ -85,9 +105,11 @@ async def send_msg(
     log.debug(f'send_msg to ws: {id(ws)} data {data_for_log} ')
 
     try:
-        await ws.send_json(msg_data)
+        await ws.send_json(msg_data_to_send)
     except Exception as e:
-        log.error(f'Eror while send_msg {msg_data} {str(e)}')
+        err_msg = f'Eror while send_msg {msg_data_to_send} {str(e)}'
+        log.error(err_msg)
+        raise SendMessageException(err_msg)
 
 
 async def reconnect_processor(
@@ -161,7 +183,11 @@ async def join_processor(
                 'create_offer': False
             }
         }
-        await send_msg(client.ws, msg_data)
+        await send_msg_to_client_in_room(
+            app=app, room_id=room.id, client_peer_id=client.peer_id,
+            msg_data=msg_data
+        )
+        # await send_msg(client.ws, msg_data)
 
         msg_data = {
             'action': Action.ADD_PEER.value,
@@ -175,6 +201,10 @@ async def join_processor(
                 'create_offer': True
             }
         }
+        # await send_msg_to_client_in_room(
+        #     app=app, room_id=room.id, client_peer_id=curr_client.peer_id,
+        #     msg_data=msg_data
+        # )
         await send_msg(curr_client.ws, msg_data)
 
     room.add_client(curr_client)
@@ -197,7 +227,7 @@ async def leave_processor(
         log.error(f'Client not found in room {room_id}')
         return
 
-    await remove_from_room(room, client_to_remove=curr_client)
+    await remove_from_room(app, room, client_to_remove=curr_client)
     log.info(f'Client: {curr_client.peer_id} left room: {room.id}')
     log_room(room)
 
@@ -228,7 +258,7 @@ async def delete_client_processor(
         log.error(f'Client {data["peer_id"]} isnt in room {room.id}')
         return
 
-    await remove_from_room(room, client_to_remove=client_to_remove)
+    await remove_from_room(app, room, client_to_remove=client_to_remove)
     log.info(
         f'Client: {client_to_remove.peer_id} was delete from room: {room.id} '
         f'by client {curr_client.peer_id}'
@@ -236,7 +266,9 @@ async def delete_client_processor(
     log_room(room)
 
 
-async def remove_from_room(room: Room, client_to_remove: Client) -> None:
+async def remove_from_room(
+    app: web.Application, room: Room, client_to_remove: Client
+) -> None:
     for client in room.clients:
         msg_data = {
             'action': Action.REMOVE_PEER.value,
@@ -244,7 +276,11 @@ async def remove_from_room(room: Room, client_to_remove: Client) -> None:
                 'peer_id': client_to_remove.peer_id,
             }
         }
-        await send_msg(client.ws, msg_data)
+        await send_msg_to_client_in_room(
+            app=app, room_id=room.id, client_peer_id=client.peer_id,
+            msg_data=msg_data
+        )
+        # await send_msg(client.ws, msg_data)
 
         msg_data = {
             'action': Action.REMOVE_PEER.value,
@@ -252,7 +288,11 @@ async def remove_from_room(room: Room, client_to_remove: Client) -> None:
                 'peer_id': client.peer_id,
             }
         }
-        await send_msg(client_to_remove.ws, msg_data)
+        await send_msg_to_client_in_room(
+            app=app, room_id=room.id, client_peer_id=client_to_remove.peer_id,
+            msg_data=msg_data
+        )
+        # await send_msg(client_to_remove.ws, msg_data)
 
     room.remove_client(client_to_remove.peer_id)
 
@@ -263,7 +303,11 @@ async def remove_from_room(room: Room, client_to_remove: Client) -> None:
             'peer_id': client_to_remove.peer_id,
         }
     }
-    await send_msg(client_to_remove.ws, msg_data)
+    await send_msg_to_client_in_room(
+        app=app, room_id=room.id, client_peer_id=client_to_remove.peer_id,
+        msg_data=msg_data
+    )
+    # await send_msg(client_to_remove.ws, msg_data)
     log.info(f'Client {client_to_remove.peer_id} removed from room {room.id}')
 
 
@@ -273,7 +317,7 @@ async def close_room(app: web.Application, room_id: str) -> None:
         return
 
     for client in room.clients:
-        await remove_from_room(room, client)
+        await remove_from_room(app, room, client)
 
     remove_room(app, room.id)
     log.info(f'Room {room_id} closed')
@@ -301,7 +345,11 @@ async def relay_sdp_processor(
         }
     }
     target_client = room.get_client_by_peer_id(data['peer_id'])
-    await send_msg(target_client.ws, msg_data)
+    await send_msg_to_client_in_room(
+        app=app, room_id=room.id, client_peer_id=target_client.peer_id,
+        msg_data=msg_data
+    )
+    # await send_msg(target_client.ws, msg_data)
     log_room(room)
 
 
@@ -327,7 +375,11 @@ async def relay_ice_processor(
         }
     }
     target_client = room.get_client_by_peer_id(data['peer_id'])
-    await send_msg(target_client.ws, msg_data)
+    await send_msg_to_client_in_room(
+        app=app, room_id=room.id, client_peer_id=target_client.peer_id,
+        msg_data=msg_data
+    )
+    # await send_msg(target_client.ws, msg_data)
     log_room(room)
 
 

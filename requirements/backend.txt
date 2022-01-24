@@ -24,3 +24,6 @@ typing-extensions==3.7.4.1  # via aiohttp
 typing==3.7.4.1           # via aiodns
 uvloop==0.14.0
 yarl==1.4.2               # via aiohttp
+
+tenacity==6.0.0
+six==1.16.0
