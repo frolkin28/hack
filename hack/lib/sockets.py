@@ -50,7 +50,7 @@ ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
 
 STOP_RETRY_ATTEMPTS = stop_after_attempt(5)
 # WAIT_PERIOD = wait_exponential(multiplier=1, min=4, max=10)
-WAIT_PERIOD = wait_fixed(0.2)
+WAIT_PERIOD = wait_fixed(0.4)
 
 
 def validate_action_data(action: Action, data: t.Dict[str, t.Any]):
