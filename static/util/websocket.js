@@ -1,9 +1,10 @@
+import ReconnectingWebSocket from 'reconnecting-websocket';
 import ACTION from '../util/action';
 
 
 class WebSocketWrapper {
     constructor(url) {
-        this.socket = new WebSocket(url);
+        this.socket = new ReconnectingWebSocket(url);
         this.actionMap = {}
 
         this.socket.onmessage = (event) => {
@@ -47,20 +48,6 @@ class WebSocketWrapper {
 }
 
 
-export const reconnectSocket = (peerId, roomId) => {
-    console.log('LOG: Socket closed, reconnecting ...');
-    const socket = createSocket();
-    socket.onopen = () => {
-        socket.send({
-            action: ACTION.RECONNECT,
-            data: {
-                peerId,
-                roomId
-            }
-        });
-    }
-}
-
 
 export const createSocket = (peerId, roomId) => {
     let socket = getExistingSocket();
@@ -73,17 +60,25 @@ export const createSocket = (peerId, roomId) => {
     } catch {
         socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
     }
-    socket.onopen = () => console.log('LOG: Socket opened');
-    socket.onclose = (peerId, roomId) => reconnectSocket(peerId, roomId);
+    socket.socket.onopen = () => {
+        console.log('LOG: Socket opened');
+        socket.socket.send(JSON.stringify({
+            action: ACTION.RECONNECT,
+            data: {
+                peerId,
+                roomId
+            }
+        }));
+    }
+    socket.socket.onclose = () => console.log('LOG: Socket closed');
     window.socket = socket;
     return socket;
 }
 
-
-export const getExistingSocket = () => {
+const getExistingSocket = () => {
     if (window.socket) {
-        return window.socket;
+        return socket;
     }
-    console.log('LOG: No socket presents');
+    console.log('LOG: No socket');
     return null;
 }
