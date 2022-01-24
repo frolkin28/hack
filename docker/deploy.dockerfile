@@ -7,7 +7,9 @@ COPY package-lock.json /app
 
 RUN npm install --loglevel=error
 
-COPY . /app
+COPY .babelrc /app
+COPY webpack /app/webpack
+COPY static /app/static
 
 RUN npm run build-dev
 
@@ -24,12 +26,9 @@ RUN pip3 install --upgrade pip && \
 
 ENV BACKEND_CONFIG_PATH "config/dev.yaml"
 
+COPY config /app/config
+COPY --from=frontend /app/build /app/build
+COPY hack /app/hack
 
-
-RUN mkdir -p build
-
-COPY --from=frontend /app/build /app/build/
-
-COPY . /app
 
 CMD ["python", "-m", "hack"]

@@ -18,7 +18,7 @@ import {NotFoundStreamPage} from "../Pages/NotFoundStreamPage";
 
 export const App = () => {
 
-    console.log('Version 1');
+    console.log('Version 4');
 
     return (
         <div className="App">
