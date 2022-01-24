@@ -38,7 +38,15 @@ class WebSocketWrapper {
     }
 }
 
+let socket;
 
-const socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
+try {
+    socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
+} catch {
+    socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
+}
+
+socket.socket.onopen = () => console.log('== Socket opened');
+socket.socket.onclose = () => console.log('== Socket closed');
 
 export default socket;

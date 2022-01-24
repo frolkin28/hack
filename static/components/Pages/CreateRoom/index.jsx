@@ -4,15 +4,23 @@ import css from './style.css';
 import {Input} from "../../styled/Input";
 import {Button} from "../../styled/Btn";
 import {useHistory, useParams} from "react-router";
-import {postRoom} from "../../../api/room";
+import {getRoom, getRooms, postRoom} from "../../../api/room";
 import {MainContext} from "../../App/context";
 import {Link} from "react-router-dom";
 
 export const CreateRoom = () => {
     const {id: roomId} = useParams();
     const history = useHistory();
-    const [errors, setErrors] = useState('')
 
+    if (Boolean(roomId)) {
+        getRooms().then((roomIds) => {
+            if (!roomIds.includes(roomId)) {
+                history.push(`/404`);
+            }
+        })
+    }
+
+    const [errors, setErrors] = useState('')
     const {email: [inputEmail, setInputEmail]} = useContext(MainContext);
     const {name: [inputName, setInputName]} = useContext(MainContext);
     const {organizer: [, setIsOrganizer]} = useContext(MainContext);

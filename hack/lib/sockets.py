@@ -73,7 +73,10 @@ async def send_msg(
 
     msg_data['data'] = transform_dict_keys(msg_data['data'], to_camel_case)
     log.debug(f'send_msg data {msg_data}')
-    await ws.send_json(msg_data)
+    try:
+        await ws.send_json(msg_data)
+    except Exception as e:
+        log.error(f'Eror while send_msg {msg_data} {str(e)}')
 
 
 async def join_processor(

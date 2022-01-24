@@ -192,13 +192,18 @@ export default function userRtcConnection(roomId, socket) {
 
     useEffect(() => {
         async function startCapture() {
-            localMediaStream.current = await navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: {
-                    width: 1280,
-                    height: 720,
-                }
-            });
+            try {
+                localMediaStream.current = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: {
+                        width: 1280,
+                        height: 720,
+                    }
+                });
+            } catch(err) {
+                return history.push('/permission/')
+            }
+
 
             addNewClient({email: inputEmail, peerId: inputEmail, name: inputName, isOrganizer}, () => {
                 const localVideoElement = peerMediaElements.current[inputEmail];
@@ -219,6 +224,9 @@ export default function userRtcConnection(roomId, socket) {
             }))
             .catch(e => console.error('Error getting userMedia:', e));
 
+        if (localMediaStream.current === null) {
+            return
+        }
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
             socket.send({ action: ACTION.LEAVE, data: {roomId} });

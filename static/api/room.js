@@ -23,10 +23,28 @@ export const getRoom = (roomId) =>
             return response.json();
         })
         .then((data) => {
-            console.log(data);
             return data.organizerEmail;
         })
         .catch((err) => {
+            console.log(err)
+            console.log(err.status)
+            console.log(`Error get organizer room: ${err}`);
+            return ''
+        });
+
+export const getRooms = () =>
+    fetch(`/api/rooms`, {
+        method: 'GET',
+        headers: { "Content-Type": "application/json" },
+    })
+        .then((response) => {
+            return response.json();
+        })
+        .then((data) => {
+            return data.map(data => data.roomId);
+        })
+        .catch((err) => {
+            console.log(err)
             console.log(`Error get organizer room: ${err}`);
             return ''
         });
