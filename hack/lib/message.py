@@ -20,6 +20,11 @@ LeaveMessageData = t.Dict(
     room_id=t.String,
 )
 
+ReconnectMessageData = t.Dict(
+    room_id=t.String,
+    peer_id=t.String,
+)
+
 DeleteClientMessageData = t.Dict(
     room_id=t.String,
     peer_id=t.String,

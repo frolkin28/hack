@@ -55,6 +55,15 @@ class Room:
     def set_organizer(self, client: Client) -> None:
         self.organizer_email = client.email
 
+    def set_socket_for_client(
+        self, ws: WebSocketResponse, client_peer_id: str,
+    ) -> None:
+        client = self.get_client_by_peer_id(client_peer_id)
+        if not client:
+            return
+
+        client.ws = ws
+
     def check_is_organizer(self, client_email: str) -> bool:
         return self.organizer_email == client_email
 
