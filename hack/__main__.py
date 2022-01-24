@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     install()
 
-    port = int(os.environ.get('PORT'), CONFIG['port'])
+    port = int(os.environ.get('PORT', CONFIG['port']))
 
     log.info(
         'Server listen on {}:{}'.format(CONFIG['host'], port)
