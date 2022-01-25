@@ -7,7 +7,7 @@ from copy import deepcopy
 from aiohttp import web, WSMessage
 from pip._vendor.tenacity import wait_fixed
 from trafaret import DataError, Trafaret
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt
 
 from hack.exceptions import ValidateActionDataException, SendMessageException
 from hack.lib.action import Action
@@ -30,11 +30,12 @@ from hack.models import Client, Room
 from hack.utils import to_snake_case
 from hack.utils import transform_dict_keys
 from hack.utils import to_camel_case
+from hack.lib.thread_job import ThreadJob
 
 log = logging.getLogger(__name__)
 
 
-ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
+ACTION_MESSAGE_TRAFARETS_MAPPING: t.Dict[Action, Trafaret] = {
     Action.JOIN: JoinMessageData,
     Action.LEAVE: LeaveMessageData,
     Action.ADD_PEER: AddPeerMessageData,
@@ -204,9 +205,14 @@ async def join_processor(
         }
         await send_msg(curr_client.ws, msg_data)
 
+    should_run_ping = not len(room.ws_list)
+
     room.add_client(curr_client)
     log.info(f'Client: {curr_client.peer_id} joined to room: {room.id}')
     log_room(room)
+
+    if should_run_ping:
+        start_pinging(app, room_id)
 
 
 async def leave_processor(
@@ -227,6 +233,8 @@ async def leave_processor(
     await remove_from_room(app, room, client_to_remove=curr_client)
     log.info(f'Client: {curr_client.peer_id} left room: {room.id}')
     log_room(room)
+    if not len(room.ws_list):
+        stop_pinging()
 
 
 async def delete_client_processor(
@@ -428,3 +436,26 @@ async def process_msg(
         await processor(app, ws, data)
     except Exception as e:
         log.warning(f'Error while run processor: {e}')
+
+
+def start_pinging(app: web.Application, room_id: str) -> None:
+    async def ping():
+        room = get_room(app, room_id)
+        if room:
+            for ws in room.ws_list:
+                log.info(f'Ping room_id: {room_id} | socket_id: {id(ws)}')
+                await ws.ping()
+
+    room = get_room(app, room_id)
+    if not room:
+        return
+    room.periodic_task = ThreadJob(ping, 2)
+    room.periodic_task.start()
+
+
+def stop_pinging(app: web.Application, room_id: str) -> None:
+    room = get_room(app, room_id)
+    if not room:
+        return
+    room.periodic_task.remove()
+    room.periodic_task = None

@@ -24,6 +24,7 @@ class Room:
         self.id = gen_id()
         self.clients = []
         self.organizer_email = None
+        self.periodic_task = None
 
     def add_client(self, client: Client) -> None:
         self.clients.append(client)
