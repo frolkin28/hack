@@ -8,6 +8,9 @@ import freeice from 'freeice';
 import ACTION from '../util/action';
 import { MainContext } from "../components/App/context";
 import { useHistory } from "react-router";
+import logMessage from '../util/logging';
+import getIceServers from '../util/iceServers';
+
 
 export const MEDIA_STREAM_STATE = {
     ON: true,
@@ -42,43 +45,11 @@ export default function userRtcConnection(roomId, socket) {
     useEffect(() => {
         const handleNewPeer = async ({ client, createOffer }) => {
             const peerId = client.peerId;
+            logMessage(`Peed ${peerId} invoked handleNewPeer`);
             if (peerId in peerConnections.current) {
                 return console.warn(`Already connected to peer ${peerId}`);
             }
-            const servers = {
-                'iceServers': [
-                    {
-                        'url': 'stun:stun.l.google.com:19302'
-                    },
-                    {
-                        'url': 'stun:stun1.l.google.com:19302'
-                    },
-                    {
-                        'url': 'stun:stun2.l.google.com:19302'
-                    },
-                    {
-                        'url': 'stun:stun3.l.google.com:19302'
-                    },
-                    {
-                        'url': 'stun:stun4.l.google.com:19302'
-                    },
-                    {
-                        'url': 'turn:192.158.29.39:3478?transport=udp',
-                        'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-                        'username': '28224511:1379330808'
-                    },
-                    {
-                        'url': 'turn:192.158.29.39:3478?transport=tcp',
-                        'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-                        'username': '28224511:1379330808'
-                    },
-                    {
-                        'url': 'turn:numb.viagenie.ca',
-                        'credential': 'muazkh',
-                        'username': 'webrtc@live.com'
-                    },
-                ]
-            };
+            const servers = getIceServers();
 
             peerConnections.current[peerId] = new RTCPeerConnection(servers);
             peerConnections.current[peerId].onicecandidate = event => {
@@ -124,9 +95,12 @@ export default function userRtcConnection(roomId, socket) {
                 peerConnections.current[peerId].addTrack(track, localMediaStream.current);
             });
 
+            logMessage(`Before createOffer=${createOffer}`);
+
             if (createOffer) {
                 const offer = await peerConnections.current[peerId].createOffer();
 
+                logMessage(`Sending createOffer=${createOffer}`);
                 await peerConnections.current[peerId].setLocalDescription(offer);
 
                 socket.send({
