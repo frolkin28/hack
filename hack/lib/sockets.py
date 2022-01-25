@@ -314,7 +314,13 @@ async def close_room(app: web.Application, room_id: str) -> None:
         return
 
     for client in room.clients:
-        await remove_from_room(app, room, client)
+        try:
+            await remove_from_room(app, room, client)
+        except Exception as e:
+            log.warning(
+                f'Error while remove_from_room {room_id}, '
+                f'client: {client.peer_id}: {e}'
+            )
 
     remove_room(app, room.id)
     log.info(f'Room {room_id} closed')
