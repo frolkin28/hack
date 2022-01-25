@@ -49,7 +49,6 @@ ACTION_MESSAGE_TRAFARETS_MAPPING: [Action, Trafaret] = {
 }
 
 STOP_RETRY_ATTEMPTS = stop_after_attempt(5)
-# WAIT_PERIOD = wait_exponential(multiplier=1, min=4, max=10)
 WAIT_PERIOD = wait_fixed(0.4)
 
 
@@ -65,11 +64,13 @@ def validate_action_data(action: Action, data: t.Dict[str, t.Any]):
         )
 
 
-@retry(stop=STOP_RETRY_ATTEMPTS, wait=WAIT_PERIOD)
+@retry(stop=STOP_RETRY_ATTEMPTS, wait=WAIT_PERIOD, reraise=True)
 async def send_msg_to_client_in_room(
     app: web.Application, room_id: str,
     client_peer_id: str, msg_data: t.Dict[str, t.Any]
 ) -> None:
+    # in prd sockets are closing very often, so we make action RECONNECT and
+    # here trying to get actual client data with not closed socket
     room = get_room(app, room_id)
     client = room.get_client_by_peer_id(client_peer_id)
 
@@ -107,7 +108,9 @@ async def send_msg(
     try:
         await ws.send_json(msg_data_to_send)
     except Exception as e:
-        err_msg = f'Eror while send_msg {msg_data_to_send} {str(e)}'
+        err_msg = (
+            f'Error while send_msg to ws: {id(ws)} {msg_data_to_send} {str(e)}'
+        )
         log.error(err_msg)
         raise SendMessageException(err_msg)
 
@@ -144,7 +147,6 @@ async def reconnect_processor(
 async def join_processor(
     app: web.Application, ws: web.WebSocketResponse, data: t.Dict[str, t.Any]
 ) -> None:
-    # TODO: make checking room existing as decorator
     room_id = data['room_id']
     room = get_room(app, room_id)
     if not room:
@@ -187,7 +189,6 @@ async def join_processor(
             app=app, room_id=room.id, client_peer_id=client.peer_id,
             msg_data=msg_data
         )
-        # await send_msg(client.ws, msg_data)
 
         msg_data = {
             'action': Action.ADD_PEER.value,
@@ -201,10 +202,6 @@ async def join_processor(
                 'create_offer': True
             }
         }
-        # await send_msg_to_client_in_room(
-        #     app=app, room_id=room.id, client_peer_id=curr_client.peer_id,
-        #     msg_data=msg_data
-        # )
         await send_msg(curr_client.ws, msg_data)
 
     room.add_client(curr_client)
@@ -269,7 +266,13 @@ async def delete_client_processor(
 async def remove_from_room(
     app: web.Application, room: Room, client_to_remove: Client
 ) -> None:
-    for client in room.clients:
+    other_clients = [
+        client
+        for client in room.clients
+        if client.peer_id != client_to_remove.peer_id
+    ]
+
+    for client in other_clients:
         msg_data = {
             'action': Action.REMOVE_PEER.value,
             'data': {
@@ -280,7 +283,6 @@ async def remove_from_room(
             app=app, room_id=room.id, client_peer_id=client.peer_id,
             msg_data=msg_data
         )
-        # await send_msg(client.ws, msg_data)
 
         msg_data = {
             'action': Action.REMOVE_PEER.value,
@@ -292,7 +294,6 @@ async def remove_from_room(
             app=app, room_id=room.id, client_peer_id=client_to_remove.peer_id,
             msg_data=msg_data
         )
-        # await send_msg(client_to_remove.ws, msg_data)
 
     room.remove_client(client_to_remove.peer_id)
 
@@ -303,10 +304,6 @@ async def remove_from_room(
             'peer_id': client_to_remove.peer_id,
         }
     }
-    # await send_msg_to_client_in_room(
-    #     app=app, room_id=room.id, client_peer_id=client_to_remove.peer_id,
-    #     msg_data=msg_data
-    # )
     await send_msg(client_to_remove.ws, msg_data)
     log.info(f'Client {client_to_remove.peer_id} removed from room {room.id}')
 
@@ -349,7 +346,6 @@ async def relay_sdp_processor(
         app=app, room_id=room.id, client_peer_id=target_client.peer_id,
         msg_data=msg_data
     )
-    # await send_msg(target_client.ws, msg_data)
     log_room(room)
 
 
@@ -379,7 +375,6 @@ async def relay_ice_processor(
         app=app, room_id=room.id, client_peer_id=target_client.peer_id,
         msg_data=msg_data
     )
-    # await send_msg(target_client.ws, msg_data)
     log_room(room)
 
 
@@ -423,4 +418,7 @@ async def process_msg(
         return
 
     processor = ACTIONS_PROCESSORS_MAPPING[action]
-    await processor(app, ws, data)
+    try:
+        await processor(app, ws, data)
+    except Exception as e:
+        log.warning(f'Error while run processor: {e}')
