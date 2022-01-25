@@ -5,8 +5,7 @@ import ACTION from '../util/action';
 class WebSocketWrapper {
     constructor(url) {
         this.socket = new ReconnectingWebSocket(url, [],{
-            minReconnectionDelay: 500 + Math.random() * 2000,
-            debug: true,
+            minReconnectionDelay: 2000,
         });
         this.actionMap = {}
 
@@ -66,7 +65,6 @@ export const createSocket = (peerId, roomId) => {
     socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
 
     socket.socket.onopen = () => {
-        console.log('LOG: Socket opened');
         socket.socket.send(JSON.stringify({
             action: ACTION.RECONNECT,
             data: {
@@ -75,7 +73,6 @@ export const createSocket = (peerId, roomId) => {
             }
         }));
     }
-    socket.socket.onclose = () => console.log('LOG: Socket closed');
     window.socket = socket;
     return socket;
 }
@@ -84,6 +81,5 @@ const getExistingSocket = () => {
     if (window.socket) {
         return socket;
     }
-    console.log('LOG: No socket');
     return null;
 }
