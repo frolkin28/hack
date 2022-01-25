@@ -445,7 +445,10 @@ def start_pinging(app: web.Application, room_id: str) -> None:
             for ws in room.ws_list:
                 log.info(f'Ping room_id: {room_id} | socket_id: {id(ws)}')
                 if not ws.closed:
-                    await ws.ping()
+                    try:
+                        await ws.ping()
+                    except:
+                        log.info(f'Socket {id(ws)} already closed')
 
     room = get_room(app, room_id)
     if not room:
