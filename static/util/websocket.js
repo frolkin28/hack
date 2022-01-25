@@ -1,10 +1,11 @@
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import ACTION from '../util/action';
+import logMessage from '../util/logging';
 
 
 class WebSocketWrapper {
     constructor(url) {
-        this.socket = new ReconnectingWebSocket(url, [],{
+        this.socket = new ReconnectingWebSocket(url, [], {
             minReconnectionDelay: 2000,
         });
         this.actionMap = {}
@@ -13,6 +14,7 @@ class WebSocketWrapper {
             const data = JSON.parse(event.data);
             const action = data.action;
             const callBack = this.actionMap[action];
+            logMessage(`Action: ${action} received with data:\n${JSON.stringify(data.data)}`);
             if (callBack) callBack(data.data);
         };
 
@@ -37,7 +39,9 @@ class WebSocketWrapper {
     }
 
     send(data) {
-        this.socket.send(JSON.stringify(data));
+        const strData = JSON.stringify(data);
+        logMessage(`sending:\n${strData}`);
+        this.socket.send(strData);
     }
 
     on(action, callBack) {
@@ -45,6 +49,7 @@ class WebSocketWrapper {
     }
 
     off(action) {
+        logMessage(`Unsubsribed from action: ${action}`)
         delete this.actionMap[action];
     }
 }
@@ -57,22 +62,25 @@ export const createSocket = (peerId, roomId) => {
         return socket;
     }
 
-    // try {
-    //     socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
-    // } catch {
-    //     socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
-    // }
-    socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
+    let wsProtocol = 'ws://';
+    if (window.location.protocol === 'https:') {
+        wsProtocol = 'wss://';
+    }
+    socket = new WebSocketWrapper(wsProtocol + window.location.host + '/api/ws');
 
     socket.socket.onopen = () => {
-        socket.socket.send(JSON.stringify({
+        logMessage('Socket opened');
+        const data = JSON.stringify({
             action: ACTION.RECONNECT,
             data: {
                 peerId,
                 roomId
             }
-        }));
+        });
+        logMessage(`sending:\n${data}`)
+        socket.socket.send(data);
     }
+    socket.socket.onclose = () => logMessage('Socket closed');
     window.socket = socket;
     return socket;
 }
