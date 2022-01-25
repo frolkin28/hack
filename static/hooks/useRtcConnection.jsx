@@ -50,8 +50,9 @@ export default function userRtcConnection(roomId, socket) {
                 return console.warn(`Already connected to peer ${peerId}`);
             }
             const servers = getIceServers();
+            const pc_constraints = {"optional": [{"DtlsSrtpKeyAgreement": true}]};
 
-            peerConnections.current[peerId] = new RTCPeerConnection(servers);
+            peerConnections.current[peerId] = new RTCPeerConnection(servers, pc_constraints);
             peerConnections.current[peerId].onicecandidate = event => {
                 if (event.candidate) {
                     logMessage('Inside if | before RELAY_ICE');
@@ -63,8 +64,9 @@ export default function userRtcConnection(roomId, socket) {
                             iceCandidate: event.candidate
                         }
                     });
+                } else {
+                    logMessage('No Ice Candidate');
                 }
-                logMessage('No Ice Candidate');
             }
 
             let tracksNumber = 0;
