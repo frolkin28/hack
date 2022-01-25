@@ -55,6 +55,7 @@ export const Room = () => {
     };
 
     const handleLeaveRoom = () => {
+        socket.send({ action: ACTION.LEAVE, data: { roomId } });
         setClients([]);
         history.push('/');
     };
