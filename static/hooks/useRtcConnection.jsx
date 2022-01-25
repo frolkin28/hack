@@ -54,6 +54,7 @@ export default function userRtcConnection(roomId, socket) {
             peerConnections.current[peerId] = new RTCPeerConnection(servers);
             peerConnections.current[peerId].onicecandidate = event => {
                 if (event.candidate) {
+                    logMessage('Inside if | before RELAY_ICE');
                     socket.send({
                         action: ACTION.RELAY_ICE,
                         data: {
@@ -63,6 +64,7 @@ export default function userRtcConnection(roomId, socket) {
                         }
                     });
                 }
+                logMessage('No Ice Candidate');
             }
 
             let tracksNumber = 0;
