@@ -19,7 +19,7 @@ import { IconButton } from "../../IconButton";
 import ACTION from "../../../util/action";
 import { MainContext } from "../../App/context";
 import userRtcConnection from "../../../hooks/useRtcConnection";
-import { createSocket } from "../../../util/websocket";
+import { createSocket, closeWebSocket } from "../../../util/websocket";
 import { getRoom } from "../../../api/room";
 
 const ReactHint = ReactHintFactory(React);
@@ -57,6 +57,8 @@ export const Room = () => {
     const handleLeaveRoom = () => {
         socket.send({ action: ACTION.LEAVE, data: { roomId } });
         setClients([]);
+        setIsOrganizer(false);
+        closeWebSocket();
         history.push('/');
     };
 

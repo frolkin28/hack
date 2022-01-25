@@ -6,7 +6,8 @@ import logMessage from '../util/logging';
 class WebSocketWrapper {
     constructor(url) {
         this.socket = new ReconnectingWebSocket(url, [], {
-            minReconnectionDelay: 2000,
+            minReconnectionDelay: 100,
+            maxReconnectionDelay: 1000,
         });
         this.actionMap = {}
 
@@ -90,4 +91,8 @@ const getExistingSocket = () => {
         return socket;
     }
     return null;
+}
+
+export const closeWebSocket = () => {
+    delete window.socket;
 }

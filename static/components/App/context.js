@@ -14,7 +14,6 @@ export const ContextProvider = ({ children }) => {
         name: [inputName, setInputName],
         organizer: [isOrganizer, setIsOrganizer],
         clients: [clients, setClients],
-        socket: [],
     }
 
     return (
