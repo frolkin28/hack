@@ -174,6 +174,7 @@ async def join_processor(
         curr_client.is_organizer = True
 
     for client in room.clients:
+        log.critical(room.clients)
         msg_data = {
             'action': Action.ADD_PEER.value,
             'data': {
