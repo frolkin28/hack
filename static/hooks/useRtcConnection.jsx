@@ -54,9 +54,7 @@ export default function userRtcConnection(roomId, socket) {
                 iceCandidatePoolSize: 10,
             };
 
-            peerConnections.current[peerId] = new RTCPeerConnection({
-                iceServers: servers,
-            });
+            peerConnections.current[peerId] = new RTCPeerConnection(servers);
             peerConnections.current[peerId].onicecandidate = event => {
                 if (event.candidate) {
                     socket.send({
