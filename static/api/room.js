@@ -1,3 +1,6 @@
+import logMessage from '../util/logging';
+
+
 export const postRoom = () =>
     fetch('/api/rooms', {
         method: 'POST',
@@ -10,7 +13,7 @@ export const postRoom = () =>
             return data.roomId;
         })
         .catch((err) => {
-            console.log(`Error create room: ${err}`);
+            logMessage(`Error create room: ${err}`);
             return ''
         });
 
@@ -26,7 +29,7 @@ export const getRoom = (roomId) =>
             return data.organizerEmail;
         })
         .catch((err) => {
-            console.log(`Error get organizer room: ${err}`);
+            logMessage(`Error get organizer room: ${err}`);
             return ''
         });
 
@@ -42,6 +45,6 @@ export const getRooms = () =>
             return data.map(data => data.roomId);
         })
         .catch((err) => {
-            console.log(`Error get organizer room: ${err}`);
+            logMessage(`Error get organizer room: ${err}`);
             return ''
         });

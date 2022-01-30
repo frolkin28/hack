@@ -1,14 +1,11 @@
-import React from 'react';
 import {
     useEffect,
     useRef,
     useCallback, useContext,
 } from 'react';
-import freeice from 'freeice';
 import ACTION from '../util/action';
 import { MainContext } from "../components/App/context";
 import { useHistory } from "react-router";
-import logMessage from '../util/logging';
 import getIceServers from '../util/iceServers';
 
 
@@ -45,7 +42,6 @@ export default function userRtcConnection(roomId, socket) {
     useEffect(() => {
         const handleNewPeer = async ({ client, createOffer }) => {
             const peerId = client.peerId;
-            logMessage(`Peed ${peerId} invoked handleNewPeer`);
             if (peerId in peerConnections.current) {
                 return console.warn(`Already connected to peer ${peerId}`);
             }
@@ -55,7 +51,6 @@ export default function userRtcConnection(roomId, socket) {
             peerConnections.current[peerId] = new RTCPeerConnection(servers, pc_constraints);
             peerConnections.current[peerId].onicecandidate = event => {
                 if (event.candidate) {
-                    logMessage('Inside if | before RELAY_ICE');
                     socket.send({
                         action: ACTION.RELAY_ICE,
                         data: {
@@ -99,12 +94,9 @@ export default function userRtcConnection(roomId, socket) {
                 peerConnections.current[peerId].addTrack(track, localMediaStream.current);
             });
 
-            logMessage(`Before createOffer=${createOffer}`);
-
             if (createOffer) {
                 const offer = await peerConnections.current[peerId].createOffer();
 
-                logMessage(`Sending createOffer=${createOffer}`);
                 await peerConnections.current[peerId].setLocalDescription(offer);
 
                 socket.send({

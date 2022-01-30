@@ -56,7 +56,6 @@ const getIceServers = () => {
                 'username': 'webrtc@live.com'
             },
         ],
-        // 'iceCandidatePoolSize': 10
     };
 }
 

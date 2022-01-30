@@ -1,15 +1,15 @@
-import React, {useContext, useState} from "react";
+import React, { useContext, useState } from "react";
 
 import css from './style.css';
-import {Input} from "../../styled/Input";
-import {Button} from "../../styled/Btn";
-import {useHistory, useParams} from "react-router";
-import {getRoom, getRooms, postRoom} from "../../../api/room";
-import {MainContext} from "../../App/context";
-import {Link} from "react-router-dom";
+import { Input } from "../../styled/Input";
+import { Button } from "../../styled/Btn";
+import { useHistory, useParams } from "react-router";
+import { getRooms, postRoom } from "../../../api/room";
+import { MainContext } from "../../App/context";
+import { Link } from "react-router-dom";
 
 export const CreateRoom = () => {
-    const {id: roomId} = useParams();
+    const { id: roomId } = useParams();
     const history = useHistory();
 
     if (Boolean(roomId)) {
@@ -21,9 +21,9 @@ export const CreateRoom = () => {
     }
 
     const [errors, setErrors] = useState('')
-    const {email: [inputEmail, setInputEmail]} = useContext(MainContext);
-    const {name: [inputName, setInputName]} = useContext(MainContext);
-    const {organizer: [, setIsOrganizer]} = useContext(MainContext);
+    const { email: [inputEmail, setInputEmail] } = useContext(MainContext);
+    const { name: [inputName, setInputName] } = useContext(MainContext);
+    const { organizer: [, setIsOrganizer] } = useContext(MainContext);
 
     const HandleInputEmail = (value) => {
         setInputEmail(value);
@@ -33,7 +33,7 @@ export const CreateRoom = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if(typeof roomId !== "undefined") {
+        if (typeof roomId !== "undefined") {
             setIsOrganizer(false);
             history.push(`/room/${roomId}`);
         } else {

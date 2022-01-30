@@ -44,7 +44,6 @@
     "@fortawesome/react-fontawesome": "^0.1.16",
     "@types/history": "^5.0.0",
     "classnames": "^2.3.1",
-    "freeice": "^2.2.2",
     "history": "^5.2.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",

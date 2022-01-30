@@ -1,7 +1,7 @@
 import React from "react";
 import css from './style.css';
-import {Link} from "react-router-dom";
-import {useHistory} from "react-router";
+import { Link } from "react-router-dom";
+import { useHistory } from "react-router";
 
 export const NotFoundStreamPage = () => {
 

@@ -1,6 +1,5 @@
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import ACTION from '../util/action';
-import logMessage from '../util/logging';
 
 
 class WebSocketWrapper {
@@ -15,7 +14,6 @@ class WebSocketWrapper {
             const data = JSON.parse(event.data);
             const action = data.action;
             const callBack = this.actionMap[action];
-            logMessage(`Action: ${action} received with data:\n${JSON.stringify(data.data)}`);
             if (callBack) callBack(data.data);
         };
 
@@ -41,7 +39,6 @@ class WebSocketWrapper {
 
     send(data) {
         const strData = JSON.stringify(data);
-        logMessage(`sending:\n${strData}`);
         this.socket.send(strData);
     }
 
@@ -50,7 +47,6 @@ class WebSocketWrapper {
     }
 
     off(action) {
-        logMessage(`Unsubsribed from action: ${action}`)
         delete this.actionMap[action];
     }
 }
@@ -70,7 +66,6 @@ export const createSocket = (peerId, roomId) => {
     socket = new WebSocketWrapper(wsProtocol + window.location.host + '/api/ws');
 
     socket.socket.onopen = () => {
-        logMessage('Socket opened');
         const data = JSON.stringify({
             action: ACTION.RECONNECT,
             data: {
@@ -78,10 +73,8 @@ export const createSocket = (peerId, roomId) => {
                 roomId
             }
         });
-        logMessage(`sending:\n${data}`)
         socket.socket.send(data);
     }
-    socket.socket.onclose = () => logMessage('Socket closed');
     window.socket = socket;
     return socket;
 }
