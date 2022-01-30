@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from aiohttp.web_ws import WebSocketResponse
 
 from hack.utils import gen_id
+from hack.lib.thread_job import ThreadJob
+
 
 log = logging.getLogger(__name__)
 
@@ -24,6 +26,7 @@ class Room:
         self.id = gen_id()
         self.clients = []
         self.organizer_email = None
+        self.periodic_task: t.Optional[ThreadJob] = None
 
     def add_client(self, client: Client) -> None:
         self.clients.append(client)

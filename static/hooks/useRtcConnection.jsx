@@ -1,13 +1,13 @@
-import React from 'react';
 import {
     useEffect,
     useRef,
     useCallback, useContext,
 } from 'react';
-import freeice from 'freeice';
 import ACTION from '../util/action';
-import {MainContext} from "../components/App/context";
-import {useHistory} from "react-router";
+import { MainContext } from "../components/App/context";
+import { useHistory } from "react-router";
+import getIceServers from '../util/iceServers';
+
 
 export const MEDIA_STREAM_STATE = {
     ON: true,
@@ -16,10 +16,10 @@ export const MEDIA_STREAM_STATE = {
 
 
 export default function userRtcConnection(roomId, socket) {
-    const {email: [inputEmail]} = useContext(MainContext);
-    const {name: [inputName]} = useContext(MainContext);
-    const {organizer: [isOrganizer]} = useContext(MainContext);
-    const {clients: [clients, setClients]} = useContext(MainContext);
+    const { email: [inputEmail] } = useContext(MainContext);
+    const { name: [inputName] } = useContext(MainContext);
+    const { organizer: [isOrganizer] } = useContext(MainContext);
+    const { clients: [clients, setClients] } = useContext(MainContext);
     const history = useHistory();
 
 
@@ -45,10 +45,10 @@ export default function userRtcConnection(roomId, socket) {
             if (peerId in peerConnections.current) {
                 return console.warn(`Already connected to peer ${peerId}`);
             }
+            const servers = getIceServers();
+            const pc_constraints = {"optional": [{"DtlsSrtpKeyAgreement": true}]};
 
-            peerConnections.current[peerId] = new RTCPeerConnection({
-                iceServers: freeice(),
-            });
+            peerConnections.current[peerId] = new RTCPeerConnection(servers, pc_constraints);
             peerConnections.current[peerId].onicecandidate = event => {
                 if (event.candidate) {
                     socket.send({
@@ -59,6 +59,8 @@ export default function userRtcConnection(roomId, socket) {
                             iceCandidate: event.candidate
                         }
                     });
+                } else {
+                    logMessage('No Ice Candidate');
                 }
             }
 
@@ -199,12 +201,12 @@ export default function userRtcConnection(roomId, socket) {
                         height: 720,
                     }
                 });
-            } catch(err) {
+            } catch (err) {
                 return history.push('/permission/')
             }
 
 
-            addNewClient({email: inputEmail, peerId: inputEmail, name: inputName, isOrganizer}, () => {
+            addNewClient({ email: inputEmail, peerId: inputEmail, name: inputName, isOrganizer }, () => {
                 const localVideoElement = peerMediaElements.current[inputEmail];
 
                 if (localVideoElement) {
@@ -217,9 +219,11 @@ export default function userRtcConnection(roomId, socket) {
         startCapture()
             .then(() => socket.send({
                 action: ACTION.JOIN,
-                data: { roomId, client: {
+                data: {
+                    roomId, client: {
                         'peerId': inputEmail, 'name': inputName, 'email': inputEmail, isOrganizer
-                    }}
+                    }
+                }
             }))
             .catch(e => console.error('Error getting userMedia:', e));
 
@@ -228,7 +232,7 @@ export default function userRtcConnection(roomId, socket) {
         }
         return () => {
             localMediaStream.current.getTracks().forEach(track => track.stop());
-            socket.send({ action: ACTION.LEAVE, data: {roomId} });
+            socket.send({ action: ACTION.LEAVE, data: { roomId } });
             setClients(list => list.filter(el => el.email !== inputEmail));
         };
     }, [roomId]);

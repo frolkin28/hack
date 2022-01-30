@@ -4,8 +4,9 @@ import ACTION from '../util/action';
 
 class WebSocketWrapper {
     constructor(url) {
-        this.socket = new ReconnectingWebSocket(url, [],{
-            minReconnectionDelay: 2000,
+        this.socket = new ReconnectingWebSocket(url, [], {
+            minReconnectionDelay: 100,
+            maxReconnectionDelay: 1000,
         });
         this.actionMap = {}
 
@@ -37,7 +38,8 @@ class WebSocketWrapper {
     }
 
     send(data) {
-        this.socket.send(JSON.stringify(data));
+        const strData = JSON.stringify(data);
+        this.socket.send(strData);
     }
 
     on(action, callBack) {
@@ -57,21 +59,21 @@ export const createSocket = (peerId, roomId) => {
         return socket;
     }
 
-    // try {
-    //     socket = new WebSocketWrapper('ws://' + window.location.host + '/api/ws');
-    // } catch {
-    //     socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
-    // }
-    socket = new WebSocketWrapper('wss://' + window.location.host + '/api/ws');
+    let wsProtocol = 'ws://';
+    if (window.location.protocol === 'https:') {
+        wsProtocol = 'wss://';
+    }
+    socket = new WebSocketWrapper(wsProtocol + window.location.host + '/api/ws');
 
     socket.socket.onopen = () => {
-        socket.socket.send(JSON.stringify({
+        const data = JSON.stringify({
             action: ACTION.RECONNECT,
             data: {
                 peerId,
                 roomId
             }
-        }));
+        });
+        socket.socket.send(data);
     }
     window.socket = socket;
     return socket;
@@ -82,4 +84,8 @@ const getExistingSocket = () => {
         return socket;
     }
     return null;
+}
+
+export const closeWebSocket = () => {
+    delete window.socket;
 }
